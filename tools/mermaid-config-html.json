@@ -1,0 +1,11 @@
+{
+  "theme": "default",
+  "themeVariables": {
+    "fontFamily": "arial,sans-serif",
+    "fontSize": "14px"
+  },
+  "flowchart": {
+    "useMaxWidth": false,
+    "htmlLabels": true
+  }
+}
