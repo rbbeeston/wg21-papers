@@ -453,7 +453,7 @@ coro promise_type::complete() const noexcept
 }
 ```
 
-When a parent `co_await`s a child task, it calls `set_continuation( cont, caller_ex )`, storing both its coroutine handle and its executor. At completion, `complete()` compares the child's executor against the stored caller executor: if they match, it returns the continuation directly for zero-overhead symmetric transfer; if they differ (as with `run_on`), it dispatches through the caller's executor to ensure the parent resumes in its expected execution context.
+When a parent `co_await`s a child task, it calls `set_continuation( cont, caller_ex )`, storing both its coroutine handle and its executor. At completion, `complete()` compares the child's executor against the stored caller executor: if they match, it returns the continuation directly for zero-overhead symmetric transfer; if they differ (as with `run`), it dispatches through the caller's executor to ensure the parent resumes in its expected execution context.
 
 #### Satisfying IoAwaitableTask
 
@@ -533,7 +533,7 @@ struct task
 
 ### 4.3 IoLaunchableTask
 
-The _IoLaunchableTask_ concept further refines _IoAwaitableTask_ with the interface needed by launch functions like `run_async` and `run_on`. These functions bootstrap context directly into a task—they call `set_executor` and `set_stop_token` on the promise rather than going through the three-argument `await_suspend`. The concept adds the requirements these functions need: `handle()` and `release()` for lifetime management, plus `exception()` and `result()` for completion handling.
+The _IoLaunchableTask_ concept further refines _IoAwaitableTask_ with the interface needed by launch functions like `run_async` and `run`. These functions bootstrap context directly into a task—they call `set_executor` and `set_stop_token` on the promise rather than going through the three-argument `await_suspend`. The concept adds the requirements these functions need: `handle()` and `release()` for lifetime management, plus `exception()` and `result()` for completion handling.
 
 ```cpp
 template<typename T>
@@ -566,16 +566,16 @@ sequenceDiagram
 ```
 
 - **`run_async`** is the root of a coroutine chain, launching from non-coroutine code
-- **`run_on`** performs executor hopping from within coroutine code, binding a child task to a different executor
+- **`run`** performs executor hopping from within coroutine code, binding a child task to a different executor
 
 Because launch functions are constrained on the concept rather than a concrete type, they work with any conforming task:
 
 ```cpp
-template< IoLaunchableTask Task >
-void run_async( executor_ref ex, Task task );
+template< Executor Ex, class... Args >
+unspecified run_async( Ex ex, Args&&... args );
 
-template< IoLaunchableTask Task >
-auto run_on( executor_ref ex, Task task );
+template< Executor Ex, class... Args >
+unspecified run( Ex ex, Args&&... args );
 ```
 
 This decoupling enables library authors to write launch utilities that work with any conforming task type, and users to define custom task types that integrate seamlessly with existing launchers.
@@ -699,30 +699,39 @@ While the syntax is unfortunate, it is _the only way_ given the timing constrain
 
 In `run_async(ex)(my_task())`, the outer postfix-expression `run_async(ex)` is fully evaluated—returning a wrapper that allocates the trampoline coroutine—before `my_task()` is invoked. This guarantees LIFO destruction order: the trampoline is allocated BEFORE the task and serves as the task's continuation.
 
-**`run_on`** — switching executors within coroutines.
+**`run`** — switching executors or customizing context within coroutines.
 
-This binds a child task to a different executor while returning to the caller's executor on completion:
+This binds a child task to a different executor while returning to the caller's executor on completion. Like `run_async`, it uses the two-call syntax to ensure proper allocation ordering:
 
 ```cpp
 task<void> parent()
 {
     // Child runs on worker_ex, but completion returns here
-    int result = co_await run_on( worker_ex, compute_on_worker() );
+    int result = co_await run( worker_ex )( compute_on_worker() );
 }
 ```
 
-The executor is stored by value in the calling awaitable's frame, keeping it alive for the operation's duration.
+The executor is stored by value in the awaitable's frame, keeping it alive for the operation's duration. Additionally, `run` provides overloads without an executor parameter that inherit the caller's executor while customizing stop_token or allocator:
+
+```cpp
+task<void> cancellable()
+{
+    std::stop_source source;
+    // Child inherits caller's executor, but uses a different stop_token
+    co_await run( source.get_token() )( subtask() );
+}
+```
 
 ### 4.6 Implementing a Launcher
 
-A launch function (e.g., `run_async`, `run_on`) bridges non-coroutine code into the coroutine world or performs executor hopping within a coroutine chain. Launch functions are constrained on _IoLaunchableTask_ to work with any conforming task type:
+A launch function (e.g., `run_async`, `run`) bridges non-coroutine code into the coroutine world or performs executor hopping within a coroutine chain. Launch functions are constrained on _IoLaunchableTask_ to work with any conforming task type:
 
 ```cpp
-template<Executor Ex, IoLaunchableTask Task>
-void run_async( Ex ex, Task task );  // caller responsible for extending lifetime
+template<Executor Ex, class... Args>
+unspecified run_async( Ex ex, Args&&... args );  // returns wrapper, caller invokes with task
 
-template<Executor Ex, IoLaunchableTask Task>
-auto run_on( Ex ex, Task task );     // caller responsible for extending lifetime
+template<Executor Ex, class... Args>
+unspecified run( Ex ex, Args&&... args );        // returns wrapper for co_await
 ```
 
 **Requirements:**
@@ -871,9 +880,10 @@ The difference is architectural. `std::execution` builds typed operation graphs 
 ```cpp
 template<class E>
 concept Executor =
-    std::copy_constructible<E> &&
-    std::equality_comparable<E> &&
-    requires( E& e, E const& ce, std::coroutine_handle<> h ) {
+    std::is_nothrow_copy_constructible_v<E> &&
+    std::is_nothrow_move_constructible_v<E> &&
+    requires( E& e, E const& ce, E const& ce2, std::coroutine_handle<> h ) {
+        { ce == ce2 } noexcept -> std::convertible_to<bool>;
         { ce.context() } noexcept;
         requires std::is_lvalue_reference_v<decltype(ce.context())> &&
             std::derived_from<
@@ -1036,11 +1046,11 @@ This approach works, but it violates encapsulation. The coroutine's parameter li
 
 ### 6.3 Our Solution: Thread-Local Propagation
 
-Thread-local propagation is the only approach that maintains clean interfaces while respecting the timing constraint. The premise is simple: **allocator customization happens at launch sites**, not within coroutine algorithms. Functions like `run_async` and `run_on` accept allocator parameters because they represent application policy decisions. Coroutine algorithms don't need to "allocator-hop"—they simply inherit whatever allocator the application has established.
+Thread-local propagation is the only approach that maintains clean interfaces while respecting the timing constraint. The premise is simple: **allocator customization happens at launch sites**, not within coroutine algorithms. Functions like `run_async` and `run` accept allocator parameters because they represent application policy decisions. Coroutine algorithms don't need to "allocator-hop"—they simply inherit whatever allocator the application has established.
 
 Our approach:
 
-1. **Receive the allocator at launch time.** The launch site (`run_async`, `run_on`) accepts a fully-typed _Allocator_ parameter, or a `std::pmr::memory_resource*` at the caller's discretion.
+1. **Receive the allocator at launch time.** The launch site (`run_async`, `run`) accepts a fully-typed _Allocator_ parameter, or a `std::pmr::memory_resource*` at the caller's discretion.
 
 2. **Type-erase it.** Typed allocators are stored as `std::pmr::memory_resource*`, providing a uniform interface for all downstream coroutines.
 
@@ -1320,8 +1330,11 @@ namespace std {
   template<executor Ex, class... Args>
     unspecified run_async(Ex const& ex, Args&&... args);
 
-  template<executor Ex, io_launchable_task Task>
-    unspecified run_on(Ex const& ex, Task task);
+  template<executor Ex, class... Args>
+    unspecified run(Ex const& ex, Args&&... args);
+
+  template<class... Args>
+    unspecified run(Args&&... args);  // inherits caller's executor
 
   // [ioawait.thiscoro], namespace this_coro
   namespace this_coro {
@@ -1430,9 +1443,10 @@ concept io_launchable_task =
 ```cpp
 template<class E>
 concept executor =
-  copy_constructible<E> &&
-  equality_comparable<E> &&
-  requires(E& e, E const& ce, coroutine_handle<> h) {
+  is_nothrow_copy_constructible_v<E> &&
+  is_nothrow_move_constructible_v<E> &&
+  requires(E& e, E const& ce, E const& ce2, coroutine_handle<> h) {
+    { ce == ce2 } noexcept -> convertible_to<bool>;
     { ce.context() } noexcept -> see-below;
     { ce.on_work_started() } noexcept;
     { ce.on_work_finished() } noexcept;
@@ -1441,7 +1455,7 @@ concept executor =
   };
 ```
 
-1 A type `E` meets the `executor` requirements if it satisfies `copy_constructible` and `equality_comparable`, and the semantic requirements below.
+1 A type `E` meets the `executor` requirements if it is nothrow copy and move constructible, and satisfies the semantic requirements below.
 
 2 No comparison operator, copy operation, move operation, swap operation, or member functions `context`, `on_work_started`, and `on_work_finished` on these types shall exit via an exception.
 
@@ -1790,36 +1804,58 @@ run_async(ex,
 
 *— end example* ]
 
-#### 12.5.2 Function template `run_on` [ioawait.launch.on]
+#### 12.5.2 Function template `run` [ioawait.launch.run]
 
 ```cpp
-template<executor Ex, io_launchable_task Task>
-  unspecified run_on(Ex const& ex, Task task);
+template<executor Ex, class... Args>
+  unspecified run(Ex const& ex, Args&&... args);
+
+template<class... Args>
+  unspecified run(Args&&... args);
 ```
 
-1 *Returns:* An awaitable object `a`.
+1 *Returns:* A callable object `f` such that the expression `f(task)` is valid when `task` satisfies `io_launchable_task`, and returns an awaitable object `a`.
 
-2 *Effects:* When `a` is awaited via `co_await a`:
+2 *Effects:* When `f(task)` is invoked:
 
-  - (2.1) The child task `task` is bound to executor `ex` via `task.handle().promise().set_executor(ex)`.
-  - (2.2) The caller's stop token is propagated to `task`.
-  - (2.3) The child task executes on `ex`.
-  - (2.4) Upon completion, the caller resumes on its original executor (via the same-executor optimization in `complete()`).
-  - (2.5) The result of `co_await a` is the result of `task`.
+  - (2.1) Sets the thread-local frame allocator to the allocator specified in `Args`, or inherits the caller's allocator if none is specified.
+  - (2.2) Evaluates `task` (which allocates the coroutine frame using the thread-local allocator).
+  - (2.3) Returns an awaitable `a` that stores the executor (if provided), stop token (if provided), and the task.
 
-3 *Preconditions:* The expression appears in a coroutine whose promise type satisfies `io_awaitable_task`.
+3 *Effects:* When `a` is awaited via `co_await a`:
 
-4 *Remarks:* The executor `ex` is stored by value in the awaitable's frame, ensuring it remains valid for the operation's duration.
+  - (3.1) The child task is bound to executor `ex` (if provided) or inherits the caller's executor.
+  - (3.2) The stop token from `Args` is propagated to `task`, or the caller's stop token is inherited if none is specified.
+  - (3.3) The child task executes on the bound executor.
+  - (3.4) Upon completion, the caller resumes on its original executor (via the same-executor optimization in `complete()`).
+  - (3.5) The result of `co_await a` is the result of `task`.
 
-5 *Synchronization:* The suspension of the caller synchronizes with the resumption of `task`. The completion of `task` synchronizes with the resumption of the caller.
+4 *Preconditions:* The expression appears in a coroutine whose promise type satisfies `io_awaitable_task`.
 
-6 [ *Example:*
+5 *Remarks:* `Args` may include:
+
+  - A `stop_token` to override the caller's stop token.
+  - An allocator satisfying the *Allocator* requirements, or a `pmr::memory_resource*`, used for coroutine frame allocation.
+
+6 *Remarks:* When no executor is provided, the task inherits the caller's executor directly, enabling zero-overhead symmetric transfer on completion.
+
+7 *Synchronization:* The suspension of the caller synchronizes with the resumption of `task`. The completion of `task` synchronizes with the resumption of the caller.
+
+8 [ *Note:* Like `run_async`, `run` uses the two-call syntax `run(ex)(task())` to ensure proper frame allocation ordering. *— end note* ]
+
+9 [ *Example:*
 
 ```cpp
 task<int> parent() {
     // Child runs on worker_ex, but completion returns here
-    int result = co_await run_on(worker_ex, compute_on_worker());
+    int result = co_await run(worker_ex)(compute_on_worker());
     co_return result * 2;
+}
+
+task<void> with_custom_token() {
+    std::stop_source source;
+    // Child inherits caller's executor, uses different stop_token
+    co_await run(source.get_token())(cancellable_work());
 }
 ```
 
