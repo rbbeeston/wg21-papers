@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
 <head>
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
@@ -88,697 +88,134 @@ code span.vs { color: #4070a0; }
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
 </style>
   <style type="text/css">
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wdth,wght@0,14..32,75..100,100..900;1,14..32,75..100,100..900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap')@supports (display: block) {  }
-
-:root {
-
---cpp-alliance-red: #A91C21;
---cpp-alliance-red-dark: #8a171b;
---cpp-alliance-red-light: #c42328;
-
---primary: var(--cpp-alliance-red);
---primary-hover: var(--cpp-alliance-red-dark);
---text: #2c2c2c;
---text-secondary: #4a4a4a;
---text-muted: #6b6b6b;
---bg: #ffffff;
---bg-secondary: #f7f7f7;
---bg-code: #f7f7f7;
---border: #e0ddd8;
---border-light: #eae7e2;
-
---syntax-keyword: #7b3294;
---syntax-type: #0077aa;
---syntax-function: #2266bb;
---syntax-string: #448844;
---syntax-number: #b35900;
---syntax-comment: #8a8a8a;
---syntax-preprocessor: #aa3344;
---syntax-operator: #555555;
-
---font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
---font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
---content-width: 257mm; 
---spacing-xs: 0.25rem;
---spacing-sm: 0.5rem;
---spacing-md: 1rem;
---spacing-lg: 1.5rem;
---spacing-xl: 2rem;
---spacing-xxl: 3rem;
-
---transition: 0.2s ease;
-}
-
-*, *::before, *::after {
-box-sizing: border-box;
-}
-html {
-font-size: 15px;
-scroll-behavior: smooth;
--webkit-text-size-adjust: 100%;
-}
 body {
-margin: 0;
-padding: var(--spacing-xl) var(--spacing-lg);
-background-color: var(--bg);
-color: var(--text);
-font-family: var(--font-body);
-font-size: 1rem;
-font-weight: 400;
-line-height: 1.55;
-font-variation-settings: "wdth" 75, "opsz" 16;
--webkit-font-smoothing: antialiased;
--moz-osx-font-smoothing: grayscale;
-}
-
-body {
-max-width: var(--content-width);
-margin-left: auto;
-margin-right: auto;
-}
-
-.paper-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding-bottom: var(--spacing-lg);
-margin-bottom: var(--spacing-xl);
-border-bottom: 3px solid var(--text);
-}
-.cpp-alliance-logo img {
-height: 70px;
-width: auto;
-float:right
-}
-.paper-header .header-text {
-font-family: var(--font-body);
-font-size: 0.95rem;
-font-weight: 400;
-font-style: italic;
-color: var(--text-muted);
-letter-spacing: 0.05em;
-text-transform: uppercase;
-}
-
-.document-info {
-background: var(--bg-secondary);
-border-left: 4px solid var(--primary);
-border-radius: 0 4px 4px 0;
-padding: var(--spacing-lg);
-margin-bottom: var(--spacing-xxl);
-}
-.document-info p {
-margin: var(--spacing-xs) 0;
-font-size: 0.9rem;
-line-height: 1.6;
-}
-.document-info strong {
-color: var(--text-secondary);
-min-width: 160px;
-display: inline-block;
-font-variation-settings: 'wght' 550, 'wdth' 75;
+max-width: 980px;
+margin: 0 auto;
+padding: 45px;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Noto Sans, Helvetica, Arial, sans-serif;
+font-size: 16px;
+line-height: 1.5;
+color: #1f2328;
+background-color: #fff;
 }
 
 h1, h2, h3, h4, h5, h6 {
-font-family: var(--font-body);
-font-variation-settings: 'wght' 575, 'wdth' 75;
-line-height: 1.3;
-color: var(--text);
-margin-top: var(--spacing-xxl);
-margin-bottom: var(--spacing-md);
+margin-top: 24px;
+margin-bottom: 16px;
+font-weight: 600;
+line-height: 1.25;
 }
-h1 {
-font-size: 1.5rem;
-color: var(--text);
-border-bottom: 3px solid var(--text);
-padding-bottom: var(--spacing-sm);
-margin-top: 0;
-}
-h2 {
-font-size: 1.2rem;
-border-bottom: 1px solid var(--border);
-padding-bottom: var(--spacing-xs);
-}
-h3 {
-font-size: 1.10rem;
-color: var(--text);
-}
-h4 {
-font-size: 1.05rem;
-color: var(--text-secondary);
-}
-h5, h6 {
-font-size: 1rem;
-color: var(--text-secondary);
-}
+h1 { font-size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid #d1d9e0; }
+h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid #d1d9e0; }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1em; }
 
 p {
 margin-top: 0;
-margin-bottom: var(--spacing-md);
-hyphens: auto;
-}
-strong {
-font-variation-settings: 'wght' 550, 'wdth' 75;
-color: var(--text);
-}
-em {
-font-family: var(--font-body);
-font-style: oblique 10deg;
-font-synthesis: none;
--webkit-font-smoothing: antialiased;
--moz-osx-font-smoothing: grayscale;
-}
-small {
-font-size: 0.875rem;
-color: var(--text-muted);
+margin-bottom: 16px;
 }
 
 a {
-color: var(--primary);
+color: #0969da;
 text-decoration: none;
-border-bottom: 1px solid transparent;
-transition: border-color var(--transition), color var(--transition);
 }
-a:hover, a:focus {
-color: var(--primary-hover);
-border-bottom-color: var(--primary-hover);
-}
-a:focus {
-outline: 2px solid var(--primary);
-outline-offset: 2px;
+a:hover {
+text-decoration: underline;
 }
 
 code {
-font-family: var(--font-mono);
-font-size: 0.8em;
-background-color: var(--bg-code);
-color: var(--syntax-preprocessor);
-padding: 0.2em 0.45em;
-border-radius: 3px;
-white-space: nowrap;
+padding: 0.2em 0.4em;
+margin: 0;
+font-size: 85%;
+white-space: break-spaces;
+background-color: rgba(175, 184, 193, 0.2);
+border-radius: 6px;
+font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 pre {
-background-color: var(--bg-code);
-border-left: 4px solid var(--primary);
-border-radius: 0 4px 4px 0;
-padding: var(--spacing-lg);
-margin: var(--spacing-lg) 0;
-overflow-x: auto;
-line-height: 1.55;
-tab-size: 4;
-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-blockquote pre{
-border-left: none; background-color: white;
+padding: 16px;
+overflow: auto;
+font-size: 85%;
+line-height: 1.45;
+background-color: #f6f8fa;
+border-radius: 6px;
+margin-bottom: 16px;
 }
 pre code {
-background: none;
-border: none;
 padding: 0;
-font-size: 0.82rem;
-font-weight: 400;
-color: var(--text);
-white-space: pre;
+margin: 0;
+font-size: 100%;
+background-color: transparent;
+border-radius: 0;
 }
 
-
-pre .keyword,
-pre .k,
-pre .kw,
-pre .kd,
-pre .kn,
-pre .kr {
-color: #7b3294;
-font-weight: 500;
+table {
+border-collapse: collapse;
+border-spacing: 0;
+width: auto;
+max-width: 100%;
+overflow: auto;
+margin-bottom: 16px;
 }
-
-pre .type,
-pre .kt,
-pre .nc,
-pre .nn {
-color: #0077aa;
+th, td {
+padding: 6px 13px;
+border: 1px solid #d1d9e0;
 }
-
-pre .built_in,
-pre .bp {
-color: #0077aa;
+th {
+font-weight: 600;
+background-color: #f6f8fa;
 }
-
-pre .function,
-pre .fn,
-pre .nf,
-pre .fm {
-color: #2266bb;
-}
-
-pre .string,
-pre .s,
-pre .s1,
-pre .s2 {
-color: #448844;
-}
-
-pre .number,
-pre .n,
-pre .mi,
-pre .mf,
-pre .mh {
-color: #b35900;
-}
-
-pre .comment,
-pre .c,
-pre .c1,
-pre .cm,
-pre .cp {
-color: #8a8a8a;
-font-style: italic;
-}
-
-pre .preprocessor,
-pre .meta {
-color: #aa3344;
-}
-
-pre .operator,
-pre .o,
-pre .p {
-color: #666666;
-}
-
-pre .punctuation {
-color: #555555;
-}
-
-pre .variable,
-pre .v,
-pre .nv {
-color: #994444;
-}
-
-pre .constant,
-pre .kc,
-pre .nb {
-color: #b35900;
-}
-
-pre .attribute,
-pre .attr {
-color: #448844;
-}
-
-pre .namespace {
-color: #0077aa;
+tr:nth-child(2n) {
+background-color: #f6f8fa;
 }
 
 blockquote {
-margin: var(--spacing-lg) 0;
-padding: var(--spacing-md) var(--spacing-lg);
-background-color: var(--bg-secondary);
-border-left: 4px solid var(--primary);
-border-radius: 0 4px 4px 0;
-color: var(--text-secondary);
-font-style: italic;
-}
-blockquote p {
-margin: 0;
-}
-blockquote p + p {
-margin-top: var(--spacing-sm);
-}
-
-blockquote.note {
-border-left-color: #0277aa;
-background-color: #eef6fa;
-}
-blockquote.warning {
-border-left-color: #dd8800;
-background-color: #fef8ee;
-}
-blockquote.danger {
-border-left-color: var(--cpp-alliance-red);
-background-color: #fdf2f2;
+margin: 0 0 16px 0;
+padding: 0 1em;
+color: #59636e;
+border-left: 0.25em solid #d1d9e0;
 }
 
 ul, ol {
-margin: 0 0 var(--spacing-md) 0;
-padding-left: var(--spacing-xl);
+margin-top: 0;
+margin-bottom: 16px;
+padding-left: 2em;
 }
-li {
-margin-bottom: var(--spacing-xs);
-}
-li > ul, li > ol {
-margin-top: var(--spacing-xs);
-margin-bottom: 0;
-}
-
-dl {
-margin: var(--spacing-md) 0;
-}
-dt {
-font-weight: 700;
-color: var(--text);
-margin-top: var(--spacing-sm);
-}
-dd {
-margin-left: var(--spacing-xl);
-color: var(--text-secondary);
-}
-
-table {
-width: 100%;
-border-collapse: collapse;
-margin: var(--spacing-lg) 0;
-font-size: 0.92rem;
-}
-thead {
-background-color: var(--bg-secondary);
-color: white;
-}
-.document-info table thead {
-background-color: transparent;
-color: var(--body-text);
-}
-.document-info table colgroup col:first-child {
-width:1% !important;
-}
-.document-info table colgroup col:last-child {
-width:99% !important;
-}
-.document-info table {
-margin: 0;
-}
-.document-info table td:first-child, .document-info table th:first-child {
-min-width:75px;
-}
-th {
-background-color: var(--text-secondary);
-font-weight: 700;
-text-align: left;
-padding: var(--spacing-sm) var(--spacing-md);
-}
-.document-info th {
-background-color: transparent;
-}
-td {
-padding: var(--spacing-sm) var(--spacing-md);
-border-bottom: 1px solid var(--border);
-}
-.document-info table td {
-padding: var(--spacing-sm) var(--spacing-md);
-border-bottom: none;
-}
-tbody tr:nth-child(even) {
-background-color: var(--bg-secondary);
-}
-
-table.compact th,
-table.compact td {
-padding: var(--spacing-xs) var(--spacing-sm);
-font-size: 0.875rem;
+li + li {
+margin-top: 0.25em;
 }
 
 hr {
-border: none;
-height: 1px;
-margin: var(--spacing-xxl) 0;
-}
-
-figure {
-margin: var(--spacing-lg) 0;
-text-align: center;
-}
-img {
-max-width: 100%;
-height: auto;
-border-radius: 3px;
-}
-figcaption {
-margin-top: var(--spacing-sm);
-font-size: 0.875rem;
-color: var(--text-muted);
-font-style: italic;
-}
-
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.text-muted { color: var(--text-muted); }
-.text-primary { color: var(--primary); }
-.mt-0 { margin-top: 0; }
-.mb-0 { margin-bottom: 0; }
-.mt-lg { margin-top: var(--spacing-lg); }
-.mb-lg { margin-bottom: var(--spacing-lg); }
-.visually-hidden {
-position: absolute;
-width: 1px;
-height: 1px;
+height: 0.25em;
 padding: 0;
-margin: -1px;
-overflow: hidden;
-clip: rect(0, 0, 0, 0);
-white-space: nowrap;
+margin: 24px 0;
+background-color: #d1d9e0;
 border: 0;
 }
 
-.toc {
-background-color: var(--bg-secondary);
-border-radius: 4px;
-padding: var(--spacing-lg);
-margin: var(--spacing-xl) 0;
-}
-.toc-title {
-font-size: 1.05rem;
-font-weight: 700;
-color: var(--text);
-margin: 0 0 var(--spacing-md) 0;
-padding-bottom: var(--spacing-sm);
-border-bottom: 2px solid var(--text);
-}
-.toc ul {
-list-style: none;
-padding-left: 0;
-margin: 0;
-}
-.toc li {
-margin: var(--spacing-xs) 0;
-}
-.toc ul ul {
-padding-left: var(--spacing-lg);
-}
-.toc a {
-color: var(--text-secondary);
-font-size: 0.92rem;
-}
-.toc a:hover {
-color: var(--primary);
+img {
+max-width: 100%;
+box-sizing: border-box;
 }
 
-.revision-history {
-font-size: 0.9rem;
+em {
+font-style: italic;
 }
-.revision-history th {
-background-color: var(--text-secondary);
-}
-
-.wording {
-background-color: var(--bg-secondary);
-border-radius: 4px;
-padding: var(--spacing-lg);
-margin: var(--spacing-lg) 0;
-}
-.wording-add {
-background-color: #eef6ee;
-border-color: #66aa66;
-}
-.wording-remove {
-background-color: #fdf2f2;
-border-color: var(--cpp-alliance-red);
-text-decoration: line-through;
-}
-ins {
-background-color: #d4edda;
-text-decoration: none;
-padding: 0 2px;
-}
-del {
-background-color: #f8d7da;
-text-decoration: line-through;
-padding: 0 2px;
-}
-
-@media print {
-html {
-font-size: 12pt;
-}
-body {
-max-width: none;
-padding: 0;
-margin: 0;
-color: #000;
-background: #fff;
-}
-.paper-header {
-border-bottom-color: #000;
-}
-
-h1, h2, h3, h4, h5, h6 {
-page-break-after: avoid;
-break-after: avoid;
-}
-pre, blockquote, table, figure {
-page-break-inside: avoid;
-break-inside: avoid;
-}
-
-a[href^="http"]::after {
-content: " (" attr(href) ")";
-font-size: 0.8em;
-color: #666;
-word-break: break-all;
-}
-
-.no-print {
-display: none !important;
-}
-
-pre {
-background-color: #f5f5f5 !important;
-white-space: pre-wrap;
-word-wrap: break-word;
-}
-pre code {
-color: #333 !important;
-}
-
-thead {
-background-color: #ddd;;
-color: #000;
--webkit-print-color-adjust: exact;
-print-color-adjust: exact;
-}
-.document-info table thead {
-background-color: transparent;
-color: var(--body-text);
-}
-}
-
-@page {
-size: A4 portrait; 
-margin: 20mm;
-@top-center {
-content: "WG21 Proposal";
-font-family: "Inter", sans-serif;
-font-size: 10pt;
-color: #666;
-}
-@bottom-center {
-content: counter(page);
-font-family: "Inter", sans-serif;
-font-size: 10pt;
-}
-}
-
-
-@media screen and (min-width: 1200px) {
-html {
-font-size: 16px;
-}
-body {
-padding: var(--spacing-xxl) var(--spacing-xl);
-}
-.cpp-alliance-logo img {
-height: 70px;
-}
-}
-
-@media screen and (max-width: 1199px) and (min-width: 769px) {
-:root {
---content-width: 720px;
-}
-html {
-font-size: 15px;
-}
-}
-
-@media screen and (max-width: 768px) {
-:root {
---content-width: 100%;
-}
-html {
-font-size: 14px;
-}
-body {
-padding: var(--spacing-lg);
-}
-h1 {
-font-size: 1.6rem;
-}
-h2 {
-font-size: 1.2rem;
-}
-.cpp-alliance-logo img {
-height: 55px;
-}
-}
-
-@media screen and (max-width: 600px) {
-html {
-font-size: 13px;
-}
-body {
-padding: var(--spacing-md);
-}
-h1 {
-font-size: 1.4rem;
-}
-h2 {
-font-size: 1.1rem;
-}
-pre {
-padding: var(--spacing-md);
-font-size: 0.78rem;
-}
-table {
-font-size: 0.85rem;
-}
-th, td {
-padding: var(--spacing-xs) var(--spacing-sm);
-}
-.paper-header {
-flex-direction: column;
-text-align: center;
-gap: var(--spacing-md);
-}
-.cpp-alliance-logo img {
-height: 45px;
-}
-}
-
-@media (prefers-reduced-motion: reduce) {
-* {
-transition: none !important;
-animation: none !important;
-}
-html {
-scroll-behavior: auto;
-}
-}
-
-:focus-visible {
-outline: 2px solid var(--primary);
-outline-offset: 2px;
-}
-:focus:not(:focus-visible) {
-outline: none;
+strong {
+font-weight: 600;
 }
 </style>
 </head>
 <body>
-<div class="document-info">
+<h1 id="stdexecution-needs-more-time"><code>std::execution</code> Needs
+More Time</h1>
+<hr />
 <table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 87%" />
+</colgroup>
 <thead>
 <tr>
 <th>Document</th>
@@ -792,7 +229,8 @@ outline: none;
 </tr>
 <tr>
 <td>Reply-to:</td>
-<td>Vinnie Falco &lt;vinnie.falco@gmail.com&gt;</td>
+<td>Vinnie Falco &lt;vinnie.falco@gmail.com&gt;<br>Mungo Gill
+&lt;mungo.gill@me.com&gt;</td>
 </tr>
 <tr>
 <td>Audience:</td>
@@ -800,28 +238,28 @@ outline: none;
 </tr>
 </tbody>
 </table>
-</div>
-<h1 id="stdexecution-needs-more-time">std::execution Needs More
-Time</h1>
-<h2 id="abstract">Abstract</h2>
-<p><code>std::execution</code> brings valuable ideas to C++: structured
-concurrency, composable task graphs, and a clean separation of work
-description from execution policy. These contributions are real and
-worth preserving. However, this paper identifies a fundamental
-incompatibility between <code>std::execution</code>’s backward-flow
-context model and coroutine frame allocation that remains unresolved by
-P3826R3’s proposed fixes. For coroutine-based I/O, allocator control is
-mandatory for performance, yet <code>std::execution</code> provides the
-allocator only <em>after</em> the coroutine frame is already allocated.
-We recommend deferring <code>std::execution</code> from C++26 to allow
-the design time to mature, so that when it ships, it can serve both
-CPU-bound and I/O-bound use cases with the quality the C++ community
-deserves.</p>
+<h2 id="revision-history">Revision History</h2>
+<ul>
+<li>R0 - Initial revision.</li>
+</ul>
 <hr />
-<h2 id="what-stdexecution-gets-right">1. What std::execution Gets
-Right</h2>
-<p><code>std::execution</code> represents years of careful work and
-genuine progress in structured asynchronous programming for C++:</p>
+<h2 id="abstract">Abstract</h2>
+<p><code>std::execution</code> brings valuable ideas to C++ - structured
+concurrency, composable task graphs, and a clean separation of work
+description from execution policy. However, a fundamental timing gap
+prevents coroutine-based I/O from using stateful allocators:
+<code>operator new</code> runs before the receiver exists, so the
+allocator arrives too late. This gap is architectural, not a missing
+feature - unlike the contracts MVP, it cannot be extended stably without
+destabilising the API. We recommend deferring
+<code>std::execution</code> to C++29, or alternatively publishing it as
+a Technical Specification, so that the allocator story can be resolved
+before the ABI is frozen.</p>
+<hr />
+<h2 id="introduction">1. Introduction</h2>
+<p><a href="https://wg21.link/p2300r10">P2300R10</a> (“std::execution”)
+represents years of careful work and genuine progress in structured
+asynchronous programming for C++:</p>
 <ul>
 <li><strong>Structured concurrency</strong> with well-defined lifetime
 guarantees for asynchronous operations</li>
@@ -834,10 +272,27 @@ that enable deterministic testing of async code</li>
 <li><strong>A formal model</strong> for reasoning about asynchronous
 completion signatures</li>
 </ul>
-<p>These are real achievements. The question this paper raises is not
-whether <code>std::execution</code> has value—it does—but whether it is
-ready to serve the full scope of use cases it aspires to, particularly
-coroutine-based I/O.</p>
+<p>These are real achievements, and the community of users and
+implementers who have invested in sender/receiver architectures - NVIDIA
+CCCL, stdexec, libunifex, Folly - has demonstrated substantial value in
+CPU-bound parallelism and GPU dispatch.</p>
+<p>The concern this paper raises is narrower than a general objection:
+<code>std::execution</code> works well for its primary use cases. The
+gap appears when the framework is extended to serve coroutine-based I/O
+- a use case the committee has explicitly placed in scope (see Section
+6.4). For that use case, the allocator must be available when the
+coroutine frame is allocated, but the sender/receiver model provides it
+only after the frame already exists.</p>
+<p>This is not a missing feature that can be added later. Unlike the
+contracts MVP - which was designed as a minimal but extendable
+foundation - the allocator timing gap is architectural:
+<code>operator new</code> runs before <code>connect()</code>, and no
+library-level change can alter that sequencing without destabilising the
+API. Discovering this before standardisation is fortunate, not a
+failure. The feature’s size and complexity make thorough review
+genuinely difficult, and it is not surprising that a gap visible only in
+the I/O use case was not identified earlier. There is still time to
+address it.</p>
 <hr />
 <h2 id="the-io-use-case">2. The I/O Use Case</h2>
 <p><code>std::execution</code> aspires to be a general-purpose
@@ -849,7 +304,7 @@ I/O:</p>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> handle_client<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> <span class="op">[</span>ec<span class="op">,</span> n<span class="op">]</span> <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span>  <span class="co">// Suspends here</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> <span class="op">[</span>ec<span class="op">,</span> n<span class="op">]</span> <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>n <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        process<span class="op">(</span>buf<span class="op">,</span> n<span class="op">);</span>  <span class="co">// data may accompany eof</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
@@ -861,293 +316,1660 @@ I/O:</p>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    tcp_socket sock <span class="op">=</span> accept_connection<span class="op">(</span>ctx<span class="op">);</span></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> ctx<span class="op">.</span>get_frame_allocator<span class="op">();</span></span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    run_async<span class="op">(</span>ctx<span class="op">.</span>get_executor<span class="op">(),</span> alloc<span class="op">)(</span>    <span class="co">// Launcher knows the allocator</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        handle_client<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sock<span class="op">))</span>       <span class="co">// Coroutine frame allocated HERE</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    run_async<span class="op">(</span>ctx<span class="op">.</span>get_executor<span class="op">(),</span> alloc<span class="op">)(</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        handle_client<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sock<span class="op">))</span>   <span class="co">// Frame allocated HERE</span></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">.</span>run<span class="op">();</span></span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The critical timing:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>run_async<span class="op">(</span>executor<span class="op">,</span> alloc<span class="op">)(</span>handle_client<span class="op">(</span>sock<span class="op">))</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                                 │</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                 └─► <span class="dt">promise_type</span><span class="op">::</span><span class="kw">operator</span> <span class="kw">new</span> runs HERE</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                                 <span class="op">|</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="op">+-&gt;</span> <span class="dt">promise_type</span><span class="op">::</span><span class="kw">operator</span> <span class="kw">new</span> runs HERE</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                                     Allocator must already be known</span></code></pre></div>
 <p>When <code>handle_client(sock)</code> is evaluated, the compiler
 calls <code>promise_type::operator new</code> to allocate the coroutine
-frame. The allocator must be available at this moment—before the
+frame. The allocator must be available at this moment - before the
 coroutine body executes, before any <code>co_await</code>, before any
 connection to a receiver.</p>
 <hr />
-<h2 id="the-cost-of-uncontrolled-allocation">3. The Cost of Uncontrolled
-Allocation</h2>
+<h2 id="the-problem">3. The Problem</h2>
+<h3 id="the-cost-of-uncontrolled-allocation">3.1 The Cost of
+Uncontrolled Allocation</h3>
 <p>High-performance I/O servers cannot tolerate uncontrolled heap
-allocation:</p>
+allocation. Realistic server code calls nested coroutines for parsing,
+processing, and serialisation - each <code>task&lt;T&gt;</code> call
+allocates a frame:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>running<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span>   <span class="co">// Frame allocated</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">co_await</span> socket<span class="op">.</span>async_write<span class="op">(</span>buf<span class="op">);</span>  <span class="co">// Frame allocated</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">// 1000 requests/sec × 2 operations = 2000 allocations/sec per connection</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">// 10,000 connections = 20 million allocations/sec</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Global heap contention becomes the bottleneck</span></span></code></pre></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>socket<span class="op">.</span>is_open<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="kw">auto</span> n <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span>  <span class="co">// I/O awaitable: no frame</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">co_await</span> process_request<span class="op">(</span>socket<span class="op">,</span> buf<span class="op">,</span> n<span class="op">);</span>   <span class="co">// task&lt;void&gt;: frame allocated</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">// handle_connection itself: 1 frame per connection</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">// process_request (and coroutines it calls): frame(s) per request</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">// 10,000 connections x 1,000 requests/sec = 10 million+ frame allocations/sec</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Global heap contention becomes the bottleneck</span></span></code></pre></div>
 <p>The solution is <strong>stateful allocators</strong>:</p>
 <ul>
-<li><strong>Recycling allocators</strong> — cache recently-freed frames
-for immediate reuse</li>
-<li><strong>Arena allocators</strong> — tie allocation lifetime to
-connection scope</li>
-<li><strong>Pool allocators</strong> — optimize for common frame
-sizes</li>
-<li><strong>Memory resources</strong> — customize upstream allocation
-strategy</li>
-<li><strong>Standard allocator</strong> - a useful tradeoff for
-resource-constrained devices</li>
+<li>recycling allocators that cache recently-freed frames</li>
+<li>arena allocators tied to connection scope</li>
+<li>pool allocators optimised for common frame sizes</li>
+<li><code>pmr::memory_resource</code> implementations that customise the
+upstream allocation strategy</li>
 </ul>
-<p>These allocators can have state: pointers to free lists, arena
-boundaries, pool metadata. This state must be accessible when
-<code>operator new</code> executes.</p>
-<p>Different coroutine chains may require different allocation policies.
-A multi-tenant server might enforce per-tenant memory limits—each
-tenant’s connections use an allocator bounded to that tenant’s quota. A
-single global allocator cannot express these constraints.</p>
-<hr />
-<h2 id="why-halo-cannot-help">4. Why HALO Cannot Help</h2>
-<p>One might ask: can’t the compiler optimize away the allocation?</p>
-<p>HALO (Heap Allocation eLision Optimization) allows compilers to elide
+<p>Modern general-purpose allocators (jemalloc, mimalloc, tcmalloc)
+achieve impressive throughput via per-thread caching, but they solve a
+different problem. They reduce contention on the global heap; they do
+not address the allocation patterns that I/O servers produce. Coroutine
+frames are short-lived, uniformly sized, and frequently allocated on one
+thread but freed on another - a cross-thread pattern that defeats
+per-thread caches.</p>
+<p>More fundamentally, a general-purpose allocator has no notion of
+application-level context. Different coroutine chains may require
+different policies. A multi-tenant server might enforce per-tenant
+memory limits, with each tenant’s connections using an allocator bounded
+to that tenant’s quota. A connection-scoped arena can reclaim all frames
+in one operation when the connection closes. These policies require the
+stateful allocators listed above - and that state must be accessible
+when <code>operator new</code> executes.</p>
+<h3 id="halo-cannot-help">3.2 HALO Cannot Help</h3>
+<p>HALO (Heap Allocation eLision Optimisation) allows compilers to elide
 coroutine frame allocation when the frame’s lifetime is provably bounded
-by its caller. For I/O coroutines, this optimization cannot apply:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;</span> read_data<span class="op">(</span>socket<span class="op">&amp;</span> s<span class="op">,</span> buffer<span class="op">&amp;</span> buf<span class="op">)</span></span>
+by its caller. For I/O coroutines launched onto an execution context,
+the frame outlives its caller - the caller returns immediately after
+launching the operation, and the frame persists until the OS signals
+completion. The compiler cannot prove bounded lifetime when the lifetime
+depends on an external event. HALO cannot apply in this common case, and
+allocation is mandatory. See Appendix A.1 for the full analysis and code
+example.</p>
+<h3 id="operator-new-is-the-only-interception-point">3.3
+<code>operator new</code> Is the Only Interception Point</h3>
+<p>The standard provides exactly one mechanism to intercept coroutine
+frame allocation:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> <span class="dt">promise_type</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> <span class="cf">co_await</span> s<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span>  <span class="co">// Suspends for network I/O</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> start_read<span class="op">()</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> t <span class="op">=</span> read_data<span class="op">(</span>sock<span class="op">,</span> buf<span class="op">);</span>         <span class="co">// Frame allocated here</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>                                          <span class="co">// Caller returns immediately</span></span></code></pre></div>
-<p><strong>Why HALO cannot apply:</strong></p>
-<ol type="1">
-<li>The coroutine suspends on I/O—waiting for a network packet</li>
-<li>The caller returns immediately after initiating the operation</li>
-<li>The frame must persist until the OS signals completion</li>
-<li>Completion timing is unbounded—microseconds to seconds</li>
-</ol>
-<p>The compiler cannot prove bounded lifetime because the lifetime
-depends on an external event. For any coroutine that suspends on I/O,
-allocation is mandatory.</p>
-<p><strong>SOMEONE must allocate the frame. That someone needs a
-stateful allocator.</strong></p>
-<hr />
-<h2 id="the-only-customization-point">5. The Only Customization
-Point</h2>
-<p>C++ provides exactly one mechanism to intercept coroutine frame
-allocation:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> <span class="dt">promise_type</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="dt">void</span><span class="op">*</span> <span class="kw">operator</span> <span class="kw">new</span><span class="op">(</span><span class="bu">std::</span>size_t size<span class="op">)</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// This is the ONLY place to intercept allocation</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// The allocator must be known RIGHT NOW</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">auto</span><span class="op">*</span> allocator <span class="op">=</span> <span class="co">/* ??? */</span><span class="op">;</span>  <span class="co">// Where does this come from?</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> allocator<span class="op">-&gt;</span>allocate<span class="op">(</span>size<span class="op">);</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
-<p>The allocator—with its state—must be discoverable at this exact
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="dt">void</span><span class="op">*</span> <span class="kw">operator</span> <span class="kw">new</span><span class="op">(</span><span class="bu">std::</span>size_t size<span class="op">)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// This is the ONLY place to intercept allocation</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// The allocator must be known RIGHT NOW</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">std::</span>pmr::memory_resource<span class="op">*</span> mr <span class="op">=</span> <span class="co">/* ??? */</span><span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> mr<span class="op">-&gt;</span>allocate<span class="op">(</span>size<span class="op">,</span> <span class="kw">alignof</span><span class="op">(</span><span class="bu">std::</span>max_align_t<span class="op">));</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>The allocator - with its state - must be discoverable at this exact
 moment. No mechanism that provides the allocator later can help. The
 frame is already allocated by the time any later mechanism executes.</p>
-<hr />
-<h2 id="the-allocator_arg-workaround">6. The allocator_arg
-Workaround</h2>
-<p>P3552R3 acknowledges the allocation problem:</p>
-<blockquote>
-<p>“When using coroutines there will probably be an allocation at least
-for the coroutine frame (the HALO optimisations can’t always work).”</p>
-</blockquote>
-<p>The paper notes that existing implementations lack allocator support
-entirely:</p>
-<blockquote>
-<p>“The <code>unifex::task&lt;T&gt;</code> doesn’t have allocator
-support. When creating a task multiple objects are allocated on the
-heap: it seems there is a total of 6 allocations for each
-<code>unifex::task&lt;T&gt;</code> being created.”</p>
-</blockquote>
-<p>The stdexec reference implementation fares no better:</p>
-<blockquote>
-<p>“Like the unifex task <code>exec::task&lt;T, C&gt;</code> doesn’t
-provide any allocator support.”</p>
-</blockquote>
-<p>P3552’s solution uses <code>std::allocator_arg_t</code> to pass
-allocator information to <code>operator new</code> via the coroutine’s
-parameter list:</p>
-<blockquote>
-<p>“The idea is to pick up on a pair of arguments of type
-<code>std::allocator_arg_t</code> and an allocator type being passed and
-use the corresponding allocator if present… The arguments passed when
-creating the coroutine are made available to an
-<code>operator new</code> of the promise type.”</p>
-</blockquote>
-<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> my_coro<span class="op">(</span><span class="dt">int</span> x<span class="op">,</span> Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span><span class="op">;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Caller must pass allocator explicitly</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="cf">co_await</span> my_coro<span class="op">(</span><span class="dv">42</span><span class="op">,</span> <span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span></span></code></pre></div>
-<p>P3552 describes how a <em>single</em> coroutine accepts an allocator
-but never addresses propagation through call chains. Every coroutine in
-a chain must accept and forward the allocator:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_three<span class="op">(</span>Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span> <span class="cf">co_return</span><span class="op">;</span> <span class="op">}</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_two<span class="op">(</span><span class="dt">int</span> x<span class="op">,</span> Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="cf">co_await</span> read_env<span class="op">(</span>get_allocator<span class="op">);</span>   <span class="co">// Query</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_three<span class="op">(</span><span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span> <span class="co">// Forward</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> level_one<span class="op">(</span><span class="dt">int</span> v<span class="op">,</span> Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="cf">co_await</span> read_env<span class="op">(</span>get_allocator<span class="op">);</span>            <span class="co">// Query</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_two<span class="op">(</span><span class="dv">42</span><span class="op">,</span> <span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span>        <span class="co">// Forward</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> v<span class="op">;</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>This pattern imposes significant burdens:</p>
-<ul>
-<li>Every coroutine requires variadic template arguments</li>
-<li>Every coroutine must query and forward the allocator</li>
-<li>Function signatures no longer reflect algorithmic intent</li>
-<li>Forgetting to forward silently breaks the chain</li>
-</ul>
-<p>The allocator becomes “viral”—polluting interfaces throughout the
-codebase. P3552’s silence on this propagation burden is telling: the
-paper demonstrates the mechanism but offers no solution for real-world
-call chains. This is not a practical solution for production I/O
-code.</p>
-<hr />
-<h2 id="a-timing-gap-in-stdexecutions-context-model">7. A Timing Gap in
-std::execution’s Context Model</h2>
+<h3 id="the-allocator_arg-workaround">3.4 The <code>allocator_arg</code>
+Workaround</h3>
+<p><a href="https://wg21.link/p3552r3">P3552R3</a> (“Add a Coroutine
+Task Type”) provides a mechanism for passing an allocator to a single
+coroutine via <code>std::allocator_arg_t</code>. This solves the initial
+allocation: the caller passes the allocator explicitly at the call site.
+However, propagation through call chains is unsolved. Every coroutine in
+the chain must accept variadic template arguments, query the allocator
+from its environment, and forward it to every child coroutine call. The
+allocator becomes viral - function signatures no longer reflect
+algorithmic intent, and forgetting to forward silently breaks the chain.
+See Appendix A.2 for the full propagation example.</p>
+<h3 id="the-receiver-arrives-too-late">3.5 The Receiver Arrives Too
+Late</h3>
 <p>The sender/receiver model in <code>std::execution</code> flows
-context backward from receiver to sender. This is an elegant design for
-many use cases, but it creates a timing gap for coroutine frame
-allocation:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// std::execution timing:</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> my_coro<span class="op">();</span>               <span class="co">// Step 1: operator new runs HERE</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>             <span class="co">//         Frame already allocated</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span>sndr<span class="op">,</span> receiver<span class="op">);</span> <span class="co">// Step 2: Receiver connected HERE</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                                   <span class="co">//         get_allocator(get_env(rcvr))</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                                   <span class="co">//         available NOW—too late</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span>                         <span class="co">// Step 3: Operation starts</span></span></code></pre></div>
-<p>P2300R4 (2022-01-18) acknowledges this timing explicitly:</p>
+context backward from receiver to sender. This creates a timing gap for
+coroutine frame allocation:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> my_coro<span class="op">();</span>                      <span class="co">// Coroutine returning a sender</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>                    <span class="co">// Step 1: operator new runs HERE</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         Frame already allocated</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sndr<span class="op">),</span> rcvr<span class="op">);</span> <span class="co">// Step 2: Receiver connected HERE</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         get_allocator(get_env(rcvr))</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         available NOW - too late</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span>                                <span class="co">// Step 3: Operation starts</span></span></code></pre></div>
+<p><a href="https://wg21.link/p2300r4">P2300R4</a> (“std::execution,”
+2022-01-18) acknowledges this timing:</p>
 <blockquote>
 <p>“In the sender/receiver model… contextual information is associated
 with the receiver and is queried by the sender and/or operation state
 <strong>after</strong> the sender and the receiver are
 <code>connect</code>-ed.”</p>
 </blockquote>
-<p>P3826R3 (2026-01-05) confirms the consequence:</p>
+<p><a href="https://wg21.link/p3826r3">P3826R3</a> (2026-01-05) confirms
+the consequence:</p>
 <blockquote>
 <p>“The receiver is not known during early customization. Therefore,
 early customization is irreparably broken.”</p>
 </blockquote>
 <p>The allocator is part of this contextual information. It becomes
-available only after <code>connect()</code>—but the coroutine frame was
-allocated in Step 1, before <code>connect()</code> was called.</p>
+available only after <code>connect()</code> - but the coroutine frame
+was allocated in Step 1, before <code>connect()</code> was called.</p>
 <p><strong>For coroutine-based I/O, the allocator arrives too
 late.</strong> This is not a flaw in the sender/receiver formalism
-itself—it is a gap that emerges when that formalism meets the concrete
+itself - it is a gap that emerges when that formalism meets the concrete
 requirements of coroutine frame allocation.</p>
 <hr />
-<h2 id="p3826r3-addresses-algorithm-dispatch-but-not-allocator-timing">8.
-P3826R3 Addresses Algorithm Dispatch but Not Allocator Timing</h2>
-<p>P3826R3 proposes important fixes for sender algorithm customization—a
-real problem worth solving. However, its five proposed solutions all
-target algorithm dispatch. None address the allocator timing gap
-identified above:</p>
-<h3 id="solution-4.1-remove-all-stdexecution">Solution 4.1: Remove all
-std::execution</h3>
-<p>This would resolve the timing gap by deferral, giving the design time
-to mature before standardization.</p>
-<h3 id="solution-4.2-remove-customizable-sender-algorithms">Solution
-4.2: Remove customizable sender algorithms</h3>
-<p>This removes <code>then</code>, <code>let_value</code>,
-<code>bulk</code>, etc. It does not change when the allocator becomes
-available. The timing problem remains.</p>
-<h3 id="solution-4.3-remove-sender-algorithm-customization">Solution
-4.3: Remove sender algorithm customization</h3>
-<p>This removes the ability to customize algorithms. It does not change
-when the allocator becomes available. The timing problem remains.</p>
-<h3 id="solution-4.4-ship-as-is-fix-via-dr">Solution 4.4: Ship as-is,
-fix via DR</h3>
-<p>This defers the fix. It does not change when the allocator becomes
-available. The timing problem remains.</p>
-<h3 id="solution-4.5-fix-algorithm-customization-now">Solution 4.5: Fix
-algorithm customization now</h3>
-<p>P3826’s proposed fix passes the receiver’s environment when querying
-a sender for its completion domain:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// P3826&#39;s fix:</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>get_completion_domain<span class="op">&lt;</span><span class="dt">set_value_t</span><span class="op">&gt;(</span>get_env<span class="op">(</span>sndr<span class="op">),</span> get_env<span class="op">(</span>rcvr<span class="op">))</span></span></code></pre></div>
-<p>This tells senders where they will start, enabling correct algorithm
-dispatch. <strong>It does not change when the allocator becomes
-available.</strong> The receiver’s environment—including the
-allocator—is still only queryable after <code>connect()</code>.</p>
-<p>P3826 fixes an important question: “which algorithm implementation
-should run.” It does not address a different but equally important
-question: “when is the allocator available.” The timing gap remains
-open.</p>
+<h2 id="why-it-cant-be-fixed-later">4. Why It Can’t Be Fixed Later</h2>
+<h3 id="the-gap-is-structural">4.1 The Gap Is Structural</h3>
+<p><code>operator new</code> runs before <code>connect()</code>. No
+library-level change can alter this sequencing - it is determined by the
+C++ language specification for coroutines interacting with the
+sender/receiver protocol. The contracts MVP was explicitly designed as a
+minimal but extendable foundation: the committee can add features in
+future standards without breaking the C++26 API. The allocator timing
+gap is different. There is no post-hoc extension point between
+“coroutine frame is allocated” and “receiver is connected.” The only way
+to close the gap is to change the sequencing - which means changing the
+API.</p>
+<h3 id="await_transform-cannot-help">4.2 <code>await_transform</code>
+Cannot Help</h3>
+<p>A natural question is whether
+<code>promise_type::await_transform</code> could inject the allocator
+into child coroutine calls, eliminating explicit
+<code>allocator_arg</code> passing. It cannot. In
+<code>co_await child_coro(args...)</code>, the function call
+<code>child_coro(args...)</code> is evaluated first - the child’s
+<code>operator new</code> fires and the frame is allocated before
+<code>co_await</code> processing begins. By the time
+<code>await_transform</code> sees the returned
+<code>task&lt;T&gt;</code>, the child’s frame has already been allocated
+without the parent’s allocator. See Appendix B.2 for the full
+evaluation-order analysis.</p>
+<h3 id="the-two-tier-design-cannot-propagate-allocators">4.3 The
+Two-Tier Design Cannot Propagate Allocators</h3>
+<p><a href="https://wg21.link/p3552r3">P3552R3</a> establishes a
+two-tier model: the allocator is a creation-time concern passed at the
+call site, while the scheduler and stop token are connection-time
+concerns from the receiver. The promise’s <code>get_env()</code> exposes
+the stored allocator to child operations via <code>get_allocator</code>.
+This solves allocating the <em>initial</em> coroutine frame - a real
+contribution. But <em>propagating</em> the allocator through a chain of
+nested coroutine calls is the harder, unsolved problem.</p>
+<p>With standard containers, the allocator type is part of the type
+signature (<code>vector&lt;T, Alloc&gt;</code>), and
+<code>uses_allocator</code> construction gives generic code a standard
+way to propagate the allocator through nested construction. With
+coroutines, the allocator is consumed inside <code>operator new</code> -
+which runs before the receiver exists - and the coroutine’s return type
+(<code>task&lt;T&gt;</code>) does not carry the allocator type. There is
+no <code>uses_allocator</code> equivalent for coroutine frame
+allocation.</p>
+<p>The propagation burden is compounded by the calling convention: every
+call site must pass both <code>std::allocator_arg</code> and the
+allocator object as leading arguments. In practice, the majority of the
+typing at each call site is dedicated to allocator plumbing rather than
+application logic - creating strong pressure to simply omit the
+allocator, defeating the purpose.</p>
+<h3 id="p3826r3s-solutions-target-a-different-problem">4.4 P3826R3’s
+Solutions Target a Different Problem</h3>
+<p><a href="https://wg21.link/p3826r3">P3826R3</a> (“Fix Sender
+Algorithm Customization,” 2026-01-05) proposes important fixes for
+sender algorithm customisation - a real problem prompted by NB comment
+<a href="https://github.com/cplusplus/nbballot/issues/903">US 207</a>
+and resolved over three revisions. However, its five proposed solutions
+all target algorithm dispatch: which implementation of
+<code>then</code>, <code>let_value</code>, or <code>bulk</code> should
+run. Four of the five do not change when the allocator becomes
+available. The fifth - remove all <code>std::execution</code> - resolves
+the gap by deferral. See Appendix B.1 for the full analysis of each
+solution.</p>
+<h3 id="abi-lock-in-makes-this-permanent">4.5 ABI Lock-In Makes This
+Permanent</h3>
+<p>Once standardised, the relationship between <code>operator new</code>
+and <code>connect()</code> becomes part of the ABI. Implementations will
+ship headers and binaries encoding this sequencing. A post-C++26 fix
+that changes the order in which allocation and connection occur would
+break binary compatibility with code compiled against the C++26
+specification. The window for fixing this is now.</p>
 <hr />
-<h2 id="conclusion">9. Conclusion</h2>
+<h2 id="the-committees-own-record">5. The Committee’s Own Record</h2>
+<p>The committee’s own proceedings confirm that the allocator story is
+unresolved and the design is still actively evolving.</p>
+<h3 id="the-allocator-poll">5.1 The Allocator Poll</h3>
+<p><a href="https://wg21.link/p3796r1">P3796R1</a> (Dietmar Kuhl,
+“Coroutine Task Issues”) was reviewed by LEWG in a September 2025
+telecon. The allocator question was polled directly:</p>
+<blockquote>
+<p>“We would like to use the allocator provided by the receivers env
+instead of the one from the coroutine frame”</p>
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>5</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Attendance: 14. Outcome: strictly neutral.</p>
+</blockquote>
+<p>The entire room abstained to neutral. The author was directed to
+explore preferred solutions with code examples.</p>
+<p>Two US national body comments confirm the same concern. US 255
+(LWG4335) states: “the used allocator type needs to be known when the
+coroutine is created. At that time the receiver isn’t known, yet.” LEWG
+polled at Kona (2025-11-06) and approved the direction (SF:4 / F:7 / N:0
+/ A:1 / SA:0, attendance 17), but wording remains outstanding. The sole
+A vote - from the task paper’s author - noted that using the receiver’s
+allocator “goes against the general behaviour of allocators.” US 253
+(LWG4333) requests arbitrary allocator support for the coroutine frame;
+wording is also still required.</p>
+<p>LWG 4356 (<code>connect()</code> should use
+<code>get_allocator(get_env(rcvr))</code>) confirms the gap has been
+filed as a specification defect - not merely an external complaint, but
+a committee-level acknowledgement of the timing problem.</p>
+<h3 id="post-approval-changes">5.2 Post-Approval Changes</h3>
+<p>The volume of papers written to fix, rework, or complete
+<code>std::execution</code> after its approval for C++26 is
+extraordinary. Mature designs do not require this level of post-approval
+remediation.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 10%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 23%" />
+<col style="width: 7%" />
+<col style="width: 8%" />
+</colgroup>
+<thead>
+<tr>
+<th>Period</th>
+<th style="text-align: center;">Removals</th>
+<th style="text-align: center;">Reworks</th>
+<th style="text-align: center;">Wording</th>
+<th style="text-align: center;">Missing Functionality</th>
+<th style="text-align: center;">LWG</th>
+<th style="text-align: center;">Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pre-Wroclaw (Mar-Oct 2024)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;"><strong>7</strong></td>
+</tr>
+<tr>
+<td>Pre-Hagenberg (Nov 2024-Feb 25)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;"><strong>8</strong></td>
+</tr>
+<tr>
+<td>Pre-Sofia (Mar-Jun 2025)</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"><strong>10</strong></td>
+</tr>
+<tr>
+<td>Pre-Kona (Jul-Nov 2025)</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;"><strong>14</strong></td>
+</tr>
+<tr>
+<td>Pre-London (Dec 2025-Feb 2026)</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;"><strong>2</strong></td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td style="text-align: center;"><strong>2</strong></td>
+<td style="text-align: center;"><strong>11</strong></td>
+<td style="text-align: center;"><strong>6</strong></td>
+<td style="text-align: center;"><strong>11</strong></td>
+<td style="text-align: center;"><strong>11</strong></td>
+<td style="text-align: center;"><strong>41</strong></td>
+</tr>
+</tbody>
+</table>
+<p>See Appendix D for the complete listing with dates, authors, and
+current status.</p>
+<p>Key observations:</p>
+<ul>
+<li><strong>The churn is accelerating, not slowing.</strong> The
+pre-Kona period produced 14 items - the highest volume - including
+Priority 1 safety defects. Two more papers appeared in the pre-London
+mailing with the London meeting still weeks away.</li>
+<li><strong>The severity has not decreased.</strong> The pre-Kona period
+includes Priority 1 LWG defects: a dangling-reference vulnerability in
+<code>transform_sender</code> (LWG 4368) and an unconstrained alias in
+<code>connect_result_t</code> (LWG 4206). Two outstanding NB comments on
+allocator support remain without wording.</li>
+<li><strong>Design reworks span the entire timeline.</strong> From
+P2855R1 (replacing <code>tag_invoke</code>, March 2024) through P3927R0
+(fixing <code>task_scheduler</code> bulk execution, January 2026) - 11
+rework papers over 22 months.</li>
+</ul>
+<p>In total: <strong>30 papers, 11 LWG defects, and 2 NB comments - 43
+items modifying a single feature after its approval.</strong></p>
+<h3 id="the-c23-precedent">5.3 The C++23 Precedent</h3>
+<p>This is not the first time maturity concerns have led to deferral.
+P2300 failed to achieve consensus for C++23:</p>
+<blockquote>
+<p>LEWG 2022-01-12: “Produce a P2300R4, modified as described below, and
+then send the revised paper to LWG for C++23 with priority 1”</p>
+<p>SF:15 / F:9 / N:1 / A:3 / SA:6 (Attendance: 39)</p>
+</blockquote>
+<p>Recorded SA reasons included “maturity/readiness” and “Feels like
+ranges all over again. Needs maturity.” The same pattern of ongoing
+design changes - algorithm reworks, allocator timing unresolved,
+multiple LWG issues opened during review - is present again.</p>
+<hr />
+<h2 id="a-path-forward">6. A Path Forward</h2>
+<h3 id="what-deferral-means">6.1 What Deferral Means</h3>
+<p>Deferring <code>std::execution</code> from C++26 does not discard the
+work done by the P2300 authors and implementers. Production-quality
+implementations already exist and are in active use. Deferral means the
+committee does not freeze the ABI until the remaining architectural gaps
+- allocator timing, allocator propagation, and the interaction with
+coroutine task types - are resolved.</p>
+<h3 id="two-concrete-alternatives">6.2 Two Concrete Alternatives</h3>
+<p>We see two equally acceptable paths forward. Either avoids ABI
+lock-in while the allocator story is resolved.</p>
+<p><strong>Defer to C++29.</strong> The committee’s own forwarding poll
+for the task type was unanimous for C++29 (SF:5 / F:7 / N:0 / A:0 /
+SA:0); the C++26 recommendation achieved only weak consensus with an “if
+possible” qualifier. Deferral to C++29 gives the authors time to resolve
+the allocator timing gap, the allocator propagation problem, and the
+outstanding LWG defects. Users are not blocked in the meantime -
+production-quality implementations (stdexec, NVIDIA CCCL, libunifex,
+Folly) are available today and do not require an IS specification to
+adopt.</p>
+<p><strong>Publish as a Technical Specification.</strong> A TS
+would:</p>
+<ul>
+<li>Preserve all the work done by the P2300 authors and
+implementers</li>
+<li>Allow implementations and users to gain real-world experience,
+especially with I/O workloads</li>
+<li>Give the committee freedom to fix the allocator timing gap before
+the ABI is frozen</li>
+<li>Follow established precedent (the Networking TS itself took this
+path)</li>
+<li>Avoid locking C++ into an API that cannot serve coroutine-based I/O
+without workarounds</li>
+</ul>
+<p>Either path acknowledges the significant investment already made
+while preserving the freedom to fix what remains. The committee can move
+<code>std::execution</code> into the IS once the I/O story is
+resolved.</p>
+<h3 id="who-bears-the-cost">6.3 Who Bears the Cost</h3>
+<p>The urgency question deserves an honest answer: who is harmed by
+deferral, and who is harmed by premature standardisation?</p>
+<p>Organisations building on <code>std::execution</code> today are not
+blocked by the absence of an IS specification - they build against
+concrete library implementations. Unlike language features, non-standard
+library implementations are straightforward to adopt; organisations can
+use Boost, stdexec, or other implementations without compiler
+extensions. Whether the committee defers to C++29 or publishes a TS,
+current users are unaffected.</p>
+<p>The networking use case - which arguably represents the largest
+constituency for asynchronous C++ - is the community most affected by
+shipping <code>std::execution</code> with an incomplete allocator story.
+SG4 mandated that networking be built exclusively on sender/receiver
+(see Section 6.4). If the framework ships without a workable allocator
+propagation model for coroutine-based I/O, the networking community
+faces a choice between inefficient workarounds and non-standard
+alternatives.</p>
+<p>This framing is not an accusation that the committee is neglecting
+networking. It is an observation that the current timeline favours
+constituencies that do not need allocator propagation (GPU dispatch,
+CPU-bound parallelism) over the constituency that does (I/O-bound
+networking). Deferral preserves optionality for everyone; premature
+standardisation imposes a concrete cost on the use case with the
+broadest demonstrated demand.</p>
+<h3 id="io-is-in-scope">6.4 I/O Is in Scope</h3>
+<p>A likely response is that <code>std::execution</code> is for
+structured concurrency and parallelism, and networking is a separate
+paper track. The committee’s own record contradicts this.</p>
+<p>SG4 polled at Kona (November 2023) on <a href="https://wg21.link/p2762r2">P2762R2</a> (“Sender/Receiver Interface
+For Networking”):</p>
+<blockquote>
+<p>“Networking should support only a sender/receiver model for
+asynchronous operations; the Networking TS’s executor model should be
+removed”</p>
+<p>SF:5 / F:5 / N:1 / A:0 / SA:1 - Consensus.</p>
+</blockquote>
+<p>Networking must be built on <code>std::execution</code>’s
+sender/receiver model. The task type (<a href="https://wg21.link/p3552r3">P3552R3</a>) is the primary I/O
+usability layer - it exists so that users can write
+<code>co_await socket.async_read(buf)</code>. If the coroutine
+integration cannot access the allocator, the I/O use case is effectively
+unserved. See Appendix C.1-C.3 for the full committee record on this
+question.</p>
+<hr />
+<h2 id="conclusion">7. Conclusion</h2>
 <p><code>std::execution</code> represents important progress in
-structured asynchronous programming for C++. Its contributions to the
-language—structured concurrency, composable pipelines, and a formal
-model for async completion—are valuable and worth building on.</p>
+structured asynchronous programming for C++. Its contributions -
+structured concurrency, composable pipelines, and a formal model for
+async completion - are valuable and worth building on.</p>
 <p>However, for coroutine-based asynchronous I/O, a fundamental timing
 gap remains:</p>
 <ol type="1">
-<li><strong>Allocation is mandatory</strong> — HALO cannot optimize away
+<li><strong>Allocation is mandatory</strong> - HALO cannot optimise away
 frames that outlive their callers</li>
-<li><strong>Stateful allocators are required</strong> — 20 million
+<li><strong>Stateful allocators are required</strong> - 10 million+
 allocations/sec demands recycling, pooling, or arena strategies</li>
-<li><strong><code>operator new</code> is the only customization
-point</strong> — the allocator must be known when the frame is
+<li><strong><code>operator new</code> is the only interception
+point</strong> - the allocator must be known when the frame is
 allocated</li>
 <li><strong><code>std::execution</code> provides the allocator too
-late</strong> — receiver environment is available only after
+late</strong> - receiver environment is available only after
 <code>connect()</code></li>
-<li><strong>P3826’s solutions do not address this</strong> — they fix
-algorithm dispatch, not allocator timing</li>
+<li><strong>The gap cannot be fixed later</strong> -
+<code>operator new</code> runs before <code>connect()</code>, and no
+library change can alter that sequencing without destabilising the
+API</li>
 </ol>
-<p>P2300R4 established the sender/receiver context model in January
-2022. Four years later, P3826R3 acknowledges that “early customization
-is irreparably broken”—the author’s own characterization of design
-issues discovered during implementation. The design continues to evolve:
-P3826R3 proposes significant architectural changes to
-<code>transform_sender</code>, removes early customization entirely, and
-restructures the relationship between <code>continues_on</code> and
-<code>schedule_from</code>. This level of active change is healthy for a
-maturing design, but it signals that the work is not yet finished.</p>
-<p>Standardizing <code>std::execution</code> now would lock in an API
-before the I/O story is resolved. Deferring it gives the authors time to
-address the allocator timing gap, stabilize the architecture, and
-deliver an API that serves the full range of use cases—CPU-bound
-parallelism and I/O-bound networking alike—with the quality and
+<p><a href="https://wg21.link/p2300r4">P2300R4</a> established the
+sender/receiver context model in January 2022. Four years later, the
+design continues to evolve: <a href="https://wg21.link/p3826r3">P3826R3</a> proposes significant
+architectural changes to <code>transform_sender</code>, removes early
+customization entirely, and restructures the relationship between
+<code>continues_on</code> and <code>schedule_from</code>. This level of
+active change is healthy for a maturing design, but it signals that the
+work is not yet finished.</p>
+<p>If <code>std::execution</code> ships with C++26 but cannot serve
+coroutine-based I/O without workarounds, the result is effectively two
+parallel frameworks - the standard one (which works for CPU-bound
+parallelism and GPU dispatch) and non-standard alternatives (which work
+for I/O). Standardising one while leaving the other to ad-hoc solutions,
+when a unified framework is achievable with more time, is an unforced
+error.</p>
+<p>The goal is not to block <code>std::execution</code>. It is to ensure
+that when it ships, it serves the full spectrum of its intended use
+cases - so that the C++ community gets one async framework, not two.
+Deferring gives the authors time to resolve the allocator timing gap,
+stabilise the architecture, and deliver an API with the quality and
 stability the C++ community expects from the standard library.</p>
-<p><strong>We recommend deferring <code>std::execution</code> from C++26
-to allow the design to mature.</strong></p>
+<p><strong>We recommend deferring <code>std::execution</code> to C++29
+or, alternatively, publishing it as a Technical Specification. Either
+path gives the committee time to resolve the allocator story before the
+ABI is frozen.</strong></p>
+<hr />
+<h2 id="appendix-a---code-examples">Appendix A - Code Examples</h2>
+<h3 id="a.1-why-halo-cannot-help">A.1 Why HALO Cannot Help</h3>
+<p>HALO (Heap Allocation eLision Optimisation) allows compilers to elide
+coroutine frame allocation when the frame’s lifetime is provably bounded
+by its caller. When an I/O coroutine is launched onto an execution
+context, the frame must outlive the launching function:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;</span> read_data<span class="op">(</span>socket<span class="op">&amp;</span> s<span class="op">,</span> buffer<span class="op">&amp;</span> buf<span class="op">)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> <span class="cf">co_await</span> s<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span>  <span class="co">// Suspends for network I/O</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> start_read<span class="op">(</span>executor ex<span class="op">)</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    start_detached<span class="op">(</span>ex<span class="op">,</span> read_data<span class="op">(</span>sock<span class="op">,</span> buf<span class="op">));</span> <span class="co">// Frame must outlive this function</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>                                             <span class="co">// Caller returns immediately</span></span></code></pre></div>
+<p><code>start_detached</code> transfers the frame’s lifetime to the
+execution context. The caller returns, and the frame persists until the
+OS signals I/O completion - which may take microseconds or seconds. The
+compiler cannot prove bounded lifetime, so HALO cannot apply and
+allocation is mandatory.</p>
+<p>A note of precision: HALO cannot apply when the coroutine frame
+outlives its caller, which is the common case for I/O coroutines
+launched onto an execution context. In the nested case - where coroutine
+A <code>co_await</code>s coroutine B - A’s frame remains alive while B
+executes, and B’s frame lifetime is bounded by A’s. In principle, a
+sufficiently advanced compiler could elide B’s allocation into A’s
+frame. No current compiler does this for <code>task&lt;T&gt;</code>
+coroutines, and the optimisation becomes infeasible once any frame in
+the chain is transferred to an execution context. HALO cannot help when
+frames outlive their callers - which is the case that matters for
+I/O.</p>
+<h3 id="a.2-the-allocator_arg-propagation-chain">A.2 The
+<code>allocator_arg</code> Propagation Chain</h3>
+<p><a href="https://wg21.link/p3552r3">P3552R3</a> provides a mechanism
+for passing an allocator to a single coroutine via
+<code>std::allocator_arg_t</code>. Here is what propagation through a
+call chain looks like in practice:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> ex <span class="op">=</span> <span class="bu">std::</span>execution<span class="op">;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_three<span class="op">(</span>Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span> <span class="cf">co_return</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_two<span class="op">(</span><span class="dt">int</span> x<span class="op">,</span> Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="cf">co_await</span> ex<span class="op">::</span>read_env<span class="op">(</span>ex<span class="op">::</span>get_allocator<span class="op">);</span>    <span class="co">// Query</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_three<span class="op">(</span><span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span>           <span class="co">// Forward</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> level_one<span class="op">(</span><span class="dt">int</span> v<span class="op">,</span> Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="cf">co_await</span> ex<span class="op">::</span>read_env<span class="op">(</span>ex<span class="op">::</span>get_allocator<span class="op">);</span>    <span class="co">// Query</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_two<span class="op">(</span><span class="dv">42</span><span class="op">,</span> <span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span>         <span class="co">// Forward</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> v<span class="op">;</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Every coroutine requires variadic template arguments. Every coroutine
+must query and forward the allocator. Function signatures no longer
+reflect algorithmic intent. Forgetting to forward silently breaks the
+chain. The allocator becomes viral - polluting interfaces throughout the
+codebase.</p>
+<h3 id="a.3-the-connectstartoperator-new-sequence">A.3 The
+<code>connect</code>/<code>start</code>/<code>operator new</code>
+Sequence</h3>
+<p>The full timing sequence showing the gap between frame allocation and
+receiver connection:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>                    <span class="co">// Step 1: operator new runs HERE</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         Frame already allocated</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sndr<span class="op">),</span> rcvr<span class="op">);</span> <span class="co">// Step 2: Receiver connected HERE</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         get_allocator(get_env(rcvr))</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         available NOW - too late</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span>                                <span class="co">// Step 3: Operation starts</span></span></code></pre></div>
+<p><a href="https://wg21.link/p2300r4">P2300R4</a> (2022-01-18)
+acknowledges this timing:</p>
+<blockquote>
+<p>“In the sender/receiver model… contextual information is associated
+with the receiver and is queried by the sender and/or operation state
+<strong>after</strong> the sender and the receiver are
+<code>connect</code>-ed.”</p>
+</blockquote>
+<p><a href="https://wg21.link/p3826r3">P3826R3</a> (2026-01-05) confirms
+the consequence for customisation:</p>
+<blockquote>
+<p>“The receiver is not known during early customization. Therefore,
+early customization is irreparably broken.”</p>
+</blockquote>
+<p>Note: the P3826R3 quote refers specifically to algorithm dispatch
+customisation, not to allocator timing. But the underlying cause is the
+same: the receiver - and its environment including the allocator - is
+not available until <code>connect()</code>.</p>
+<h3 id="a.4-senderreceiver-vs-coroutine---side-by-side">A.4
+Sender/Receiver vs Coroutine - Side by Side</h3>
+<p>The same <code>handle_connection</code> logic in both models
+illustrates where the gap opens.</p>
+<p><strong>Pure sender/receiver (no coroutines):</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> just<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>socket<span class="op">))</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>      <span class="op">|</span> let_value<span class="op">([](</span>tcp_socket<span class="op">&amp;</span> s<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> async_read<span class="op">(</span>s<span class="op">)</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> let_value<span class="op">([&amp;](</span><span class="kw">auto</span> data<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> process<span class="op">(</span>s<span class="op">,</span> data<span class="op">);</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                <span class="op">});</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">});</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Usage:</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span>handle_connection<span class="op">(</span>sock<span class="op">),</span> rcvr<span class="op">);</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">//                                         ^^^^</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">// The receiver&#39;s allocator is available here.</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">// connect() can allocate the entire operation state</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">// tree using get_allocator(get_env(rcvr)).</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span></span></code></pre></div>
+<p>No allocation happens until <code>connect(sender, receiver)</code>.
+The receiver’s environment - including the allocator - is available for
+the entire operation state tree. There is no timing gap.</p>
+<p><strong>Coroutine model:</strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// operator new has ALREADY run by this point.</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// The frame is allocated. The receiver does not exist yet.</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> n <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> process_request<span class="op">(</span>socket<span class="op">,</span> buf<span class="op">,</span> n<span class="op">);</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The coroutine frame is allocated during the function call - before
+any receiver exists. This is the precise moment the gap opens. The
+sender/receiver model’s allocator story is architecturally sound for
+non-coroutine use. The gap is introduced specifically by the coroutine
+integration, and <code>task&lt;T&gt;</code> - the usability layer that
+makes sender/receiver practical for I/O - is where the timing mismatch
+lives.</p>
+<hr />
+<h2 id="appendix-b---counterarguments-examined">Appendix B -
+Counterarguments Examined</h2>
+<h3 id="b.1-p3826r3-and-algorithm-dispatch">B.1 P3826R3 and Algorithm
+Dispatch</h3>
+<p><a href="https://wg21.link/p3826r3">P3826R3</a> proposes important
+fixes for sender algorithm customisation, prompted by NB comment <a href="https://github.com/cplusplus/nbballot/issues/903">US 207</a>. The
+resolution went through three revisions before acceptance in January
+2026 - evidence of ongoing design evolution, but not itself an
+indictment.</p>
+<p>P3826 offers five solutions. All target algorithm dispatch - which
+implementation of <code>then</code>, <code>let_value</code>, or
+<code>bulk</code> should run. None address the allocator timing gap:</p>
+<p><strong>Solution 4.1: Remove all
+<code>std::execution</code>.</strong> This would resolve the timing gap
+by deferral.</p>
+<p><strong>Solution 4.2: Remove customisable sender algorithms.</strong>
+This removes <code>then</code>, <code>let_value</code>,
+<code>bulk</code>, etc. It does not change when the allocator becomes
+available.</p>
+<p><strong>Solution 4.3: Remove sender algorithm customisation.</strong>
+This removes the ability to customise algorithms. It does not change
+when the allocator becomes available.</p>
+<p><strong>Solution 4.4: Ship as-is, fix via DR.</strong> This defers
+the fix. It does not change when the allocator becomes available.</p>
+<p><strong>Solution 4.5: Fix algorithm customisation now.</strong>
+P3826’s recommended fix restructures <code>transform_sender</code> to
+take the receiver’s environment, changing information flow at
+<code>connect()</code> time:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>get_completion_domain<span class="op">&lt;</span><span class="dt">set_value_t</span><span class="op">&gt;(</span>get_env<span class="op">(</span>sndr<span class="op">),</span> get_env<span class="op">(</span>rcvr<span class="op">))</span></span></code></pre></div>
+<p>This tells senders where they will start, enabling correct algorithm
+dispatch. It does not change when the allocator becomes available - the
+receiver’s environment is still only queryable after
+<code>connect()</code>.</p>
+<p>The Kona discussion also revealed that removing sender algorithm
+customisation could preclude shipping the task type entirely, since the
+task type’s utility depends on the ability to customise algorithms. The
+allocator timing issue, the algorithm customisation issue, and the task
+type are architecturally intertwined.</p>
+<h3 id="b.2-why-await_transform-cannot-close-the-gap">B.2 Why
+<code>await_transform</code> Cannot Close the Gap</h3>
+<p>A reader familiar with C++ coroutine machinery may ask whether
+<code>promise_type::await_transform</code> could inject the allocator
+into child coroutine calls, eliminating explicit
+<code>allocator_arg</code> passing.</p>
+<p>The issue is evaluation order. In the expression:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">co_await</span> child_coro<span class="op">(</span>args<span class="op">...)</span></span></code></pre></div>
+<p>The function call <code>child_coro(args...)</code> is evaluated
+<em>first</em>. The child’s <code>operator new</code> fires, the
+coroutine frame is allocated, the promise is constructed, and
+<code>get_return_object()</code> runs - all during the function call
+expression. Only then does <code>co_await</code> processing begin, at
+which point <code>await_transform</code> sees the returned
+<code>task&lt;T&gt;</code>.</p>
+<p>By the time <code>await_transform</code> executes, the child’s frame
+has already been allocated without the parent’s allocator. There is no
+customisation point in the C++ coroutine specification that allows a
+caller to inject context into a callee’s allocation.
+<code>operator new</code>, <code>get_return_object</code>, and
+<code>initial_suspend</code> all execute during the function call
+expression, before <code>co_await</code> processing begins.</p>
+<p><code>await_transform</code> <em>can</em> inject context into a
+child’s <em>execution</em> phase - this is how P3552’s <code>task</code>
+propagates the scheduler and stop token via the receiver environment at
+<code>connect()</code>/<code>start()</code> time. But allocation and
+execution are different phases: allocation happens at call time,
+execution happens at start time. The sender/receiver model’s
+backward-flow context is designed for the execution phase. It has no
+mechanism to influence the allocation phase, because allocation precedes
+the existence of the receiver.</p>
+<h3 id="b.3-the-two-tier-design-and-allocator-propagation">B.3 The
+Two-Tier Design and Allocator Propagation</h3>
+<p><a href="https://wg21.link/p3552r3">P3552R3</a> establishes a
+two-tier model:</p>
+<ul>
+<li><strong>Creation-time concerns:</strong> The allocator is passed at
+the call site via <code>std::allocator_arg_t</code>. The promise stores
+it and exposes it through <code>get_env()</code>.</li>
+<li><strong>Connection-time concerns:</strong> The scheduler and stop
+token come from the receiver’s environment, available after
+<code>connect()</code>.</li>
+</ul>
+<p>This is a thoughtful design that correctly separates two categories
+of concern. It solves allocating the <em>initial</em> coroutine frame
+with a custom allocator - a real contribution.</p>
+<p>The unsolved problem is <em>propagation</em>. When
+<code>level_one</code> calls <code>level_two</code> which calls
+<code>level_three</code>, each child coroutine needs the allocator at
+its call site - before it has any connection to a receiver. The parent
+must query its own environment, extract the allocator, and pass it
+explicitly.</p>
+<p>A likely counterargument is that this is analogous to how allocators
+work for standard containers: you pass the allocator at construction
+time, and the container propagates it internally. But coroutines are
+fundamentally different:</p>
+<ul>
+<li>With containers, the allocator type is part of the type signature
+(<code>vector&lt;T, Alloc&gt;</code>). With coroutines, the return type
+is <code>task&lt;T&gt;</code> - it does not carry the allocator
+type.</li>
+<li>With containers, <code>uses_allocator</code> construction gives
+generic code a standard way to propagate the allocator. With coroutines,
+there is no equivalent mechanism.</li>
+<li>With containers, the allocator is passed once at construction and
+the container handles propagation internally. With coroutines, every
+call site in the chain must manually query and forward.</li>
+</ul>
+<p>Until a propagation mechanism comparable to
+<code>uses_allocator</code> exists for coroutine frame allocation, the
+two-tier design solves only the first call in the chain. Production I/O
+code involves deep call chains, and the manual forwarding burden makes
+it impractical to maintain allocator discipline throughout.</p>
+<hr />
+<h2 id="appendix-c---committee-record">Appendix C - Committee
+Record</h2>
+<h3 id="c.1-the-single-async-model-debate">C.1 The Single Async Model
+Debate</h3>
+<p>On 2021-09-28 (attendance: 49), the committee debated whether
+<code>std::execution</code> should be the single async model for
+C++:</p>
+<blockquote>
+<p>“We must have a single async model for the C++ Standard Library”</p>
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>9</td>
+<td>10</td>
+<td>11</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>No consensus.</p>
+</blockquote>
+<p>The committee could not agree on a single model, but the question
+itself reveals the ambition: <code>std::execution</code> was being
+positioned to serve all async use cases including I/O.</p>
+<h3 id="c.2-the-c23-deferral">C.2 The C++23 Deferral</h3>
+<p>LEWG 2022-01-12:</p>
+<blockquote>
+<p>“Produce a P2300R4 (std::execution), modified as described below, and
+then send the revised paper to LWG for C++23 with priority 1”</p>
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15</td>
+<td>9</td>
+<td>1</td>
+<td>3</td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+<p>Attendance: 39. Weak consensus.</p>
+</blockquote>
+<p>Recorded SA reasons included: “maturity/readiness/tag_invoke and the
+numerous change in the last few meetings,” “Feels like ranges all over
+again. Needs maturity,” and “Too few reviews from embedded people.”</p>
+<p>The C++23 deferral happened because of maturity concerns. The same
+pattern of ongoing design changes is present again.</p>
+<h3 id="c.3-sg4-networking-mandate">C.3 SG4 Networking Mandate</h3>
+<p>SG4 polled at Kona (November 2023) on <a href="https://wg21.link/p2762r2">P2762R2</a>:</p>
+<blockquote>
+<p>“Networking should support only a sender/receiver model for
+asynchronous operations; the Networking TS’s executor model should be
+removed”</p>
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>Consensus.</p>
+</blockquote>
+<p>SG4’s feature requirements for networking (Kona 2023):</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: center;">Yes</th>
+<th style="text-align: center;">No</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>async_read</code></td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td><code>async_write</code></td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td><code>connect(context, name)</code></td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">1</td>
+</tr>
+</tbody>
+</table>
+<p>These are the I/O primitives that will be built on
+<code>std::execution</code>.</p>
+<h3 id="c.4-p3552-design-approval-and-forwarding">C.4 P3552 Design
+Approval and Forwarding</h3>
+<p>The P3552R1 design approval poll (LEWG, 2025-04-22):</p>
+<blockquote>
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>6</td>
+<td>6</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Attendance: 23.</p>
+</blockquote>
+<p>Six neutral votes matching the number of favourable votes is a
+notably soft result for a design approval poll.</p>
+<p>The forwarding poll (LEWG, 2025-05-06):</p>
+<blockquote>
+<p>“Forward P3552R1 with the action items discussed to LWG for
+C++29”</p>
+<p>SF:5 / F:7 / N:0 / A:0 / SA:0 - unanimous.</p>
+<p>“Forward P3552R1 to LWG with the action items discussed with a
+recommendation to apply for C++26 (if possible).”</p>
+<p>SF:5 / F:3 / N:4 / A:1 / SA:0 - weak consensus, with “if possible”
+qualifier.</p>
+</blockquote>
+<p>C++29 was unanimous; C++26 was conditional and weak.</p>
+<h3 id="c.5-hagenberg-design-reworks">C.5 Hagenberg Design Reworks</h3>
+<p>At Hagenberg (February 2025), SG1 forwarded P3552R0 with required
+architectural changes: replacing <code>continues_on</code> with a new
+<code>affine_on</code> mechanism, adding a cancellation channel,
+supporting errors without exceptions, and implementing scheduler
+affinity (SF:7 / F:0 / N:0 / A:1 / SA:0). The sole A voter specifically
+wanted “a more general concept for scheduler affinity to come to SG1
+before we ship something in the standard.”</p>
+<p>LEWG then polled on <code>affine_on</code> replacing
+<code>continue_on</code> (SF:9 / F:6 / N:2 / A:1 / SA:0) and on
+error-without-exceptions support (SF:6 / F:6 / N:4 / A:1 / SA:1). These
+are fundamental design changes - not editorial fixes - made in the same
+year as the C++26 deadline.</p>
+<h3 id="c.6-p3796r1-and-the-allocator-polls">C.6 P3796R1 and the
+Allocator Polls</h3>
+<p>See Section 5.1 for the LEWG allocator poll. The full context:</p>
+<p><a href="https://wg21.link/p3796r1">P3796R1</a> (Dietmar Kuhl,
+“Coroutine Task Issues”) was reviewed in LEWG telecons during
+August-September 2025. Some sections achieved consensus; others remain
+pending. Multiple LWG issues were opened (4329-4332, 4344).</p>
+<p>US 255 (<a href="https://github.com/cplusplus/nbballot/issues/959">cplusplus/nbballot#959</a>,
+LWG4335): “Use allocator from receiver’s environment.” The NB comment
+states: “Normally, the get_allocator query forwards the allocator from
+the receiver’s environment. For task the get_allocator query used for
+co_awaited senders uses the allocator passed when creating the coroutine
+or the default if there was none. It should use the receiver’s
+environment, at least, if the receiver’s environment supports a
+get_allocator query. Supporting the receiver’s allocator isn’t always
+possible: the used allocator type needs to be known when the coroutine
+is created. At that time the receiver isn’t known, yet.”</p>
+<p>This is D4007’s thesis stated as a US national body comment.</p>
+<p>US 253 (<a href="https://github.com/cplusplus/nbballot/issues/961">cplusplus/nbballot#961</a>,
+LWG4333): “Allow use of arbitrary allocators for coroutine frame.”
+Status: needs wording.</p>
+<h3 id="c.7-kona-algorithm-customisation-straw-poll">C.7 Kona Algorithm
+Customisation Straw Poll</h3>
+<p>At Kona (November 2025), LEWG reviewed P3826’s proposed fix for
+algorithm customisation:</p>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 79%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+</colgroup>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+<th style="text-align: right;">F</th>
+<th style="text-align: right;">A</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Remove all of the C++26 <code>std::execution</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">30</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Remove all of the customisable sender algorithms for C++26</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Remove sender algorithm customisation (early &amp; late)</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fix customisations now (only late CPs)</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Ship as-is and fix algorithm customisation in a DR</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">21</td>
+</tr>
+</tbody>
+</table>
+<p>Attendance: 44.</p>
+<p>Option 4 (fix now) won the most support. The resolution went through
+three revisions before eventual acceptance in January 2026.</p>
+<h3 id="c.8-outstanding-lwg-defects">C.8 Outstanding LWG Defects</h3>
+<p>Two Priority 1 defects remain open as of the Kona meeting:</p>
+<ul>
+<li><strong>LWG 4206:</strong> <code>connect_result_t</code>
+unconstrained, causing hard errors instead of SFINAE-friendly
+failures.</li>
+<li><strong>LWG 4368:</strong> Dangling-reference vulnerability in
+<code>transform_sender</code> (stack-use-after-scope) - returns xvalue
+to a dead temporary, potential undefined behaviour.</li>
+</ul>
+<p>Additional open defects:</p>
+<ul>
+<li><strong>LWG 4190:</strong> <code>completion-signatures-for</code>
+specification is recursive - a circular dependency that cannot be
+satisfied.</li>
+<li><strong>LWG 4215:</strong> <code>run_loop::finish</code> should be
+<code>noexcept</code> - throwing causes <code>sync_wait</code> to hang
+forever.</li>
+<li><strong>LWG 4355:</strong> <code>connect-awaitable()</code> should
+mandate receiver completion-signals.</li>
+<li><strong>LWG 4356:</strong> <code>connect()</code> should use
+<code>get_allocator(get_env(rcvr))</code> - directly relevant to the
+allocator timing issue.</li>
+</ul>
+<p>Priority 1 issues in an approved feature are a concrete signal that
+the specification has not yet stabilised. These are not obscure corner
+cases but defects in core mechanisms (<code>connect</code> and
+<code>transform_sender</code>) that every sender/receiver program
+exercises.</p>
+<hr />
+<h2 id="appendix-d---post-approval-modification-catalogue">Appendix D -
+Post-Approval Modification Catalogue</h2>
+<p>The following tables list all WG21 papers identified as fixing,
+reworking, removing, or completing missing functionality in
+<code>std::execution</code> (P2300) after its approval for C++26. Papers
+that extend the framework into new domains (e.g., networking) are
+excluded.</p>
+<h3 id="removals">Removals</h3>
+<table>
+<colgroup>
+<col style="width: 3%" />
+<col style="width: 23%" />
+<col style="width: 11%" />
+<col style="width: 5%" />
+<col style="width: 7%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Title</th>
+<th>Author(s)</th>
+<th>Date</th>
+<th>Status</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P3187R1</td>
+<td>Remove <code>ensure_started</code> and <code>start_detached</code>
+from P2300</td>
+<td>Lewis Baker, Eric Niebler</td>
+<td>2024-10-15</td>
+<td>Adopted</td>
+<td>Removes two algorithms that dynamically allocate with no allocator
+customization and break structured concurrency.</td>
+</tr>
+<tr>
+<td>P3682R0</td>
+<td>Remove <code>std::execution::split</code></td>
+<td>Eric Niebler</td>
+<td>2025-02-04</td>
+<td>Adopted (Sofia)</td>
+<td>Removes <code>split</code> due to incorrect description of its
+purpose and problematic semantics.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="major-design-reworks">Major Design Reworks</h3>
+<table>
+<colgroup>
+<col style="width: 1%" />
+<col style="width: 13%" />
+<col style="width: 4%" />
+<col style="width: 2%" />
+<col style="width: 42%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Title</th>
+<th>Author(s)</th>
+<th>Date</th>
+<th>Status</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P2855R1</td>
+<td>Member customization points for Senders and Receivers</td>
+<td>Ville Voutilainen</td>
+<td>2024-03-18</td>
+<td>Adopted</td>
+<td>Replaces <code>tag_invoke</code>-based ADL customization with member
+functions - a breaking change.</td>
+</tr>
+<tr>
+<td>P2999R3</td>
+<td>Sender Algorithm Customization</td>
+<td>Eric Niebler</td>
+<td>2024-04-16</td>
+<td>Adopted</td>
+<td>Removes ADL-based customization of sender algorithms in favour of
+member-function customization on a domain object.</td>
+</tr>
+<tr>
+<td>P3303R1</td>
+<td>Fixing Lazy Sender Algorithm Customization</td>
+<td>Eric Niebler</td>
+<td>2024-10-15</td>
+<td>Adopted</td>
+<td>Fixes gross oversight in P2999 where wording changes that implement
+the approved design were missing.</td>
+</tr>
+<tr>
+<td>P3175R3</td>
+<td>Reconsidering the <code>std::execution::on</code> algorithm</td>
+<td>Eric Niebler</td>
+<td>2024-10-15</td>
+<td>Adopted</td>
+<td>Renames <code>on</code> to <code>starts_on</code> and
+<code>transfer</code> to <code>continues_on</code> because usage
+revealed a gap between users’ expectations and actual behaviour. Also
+fixes a bug in <code>get_scheduler</code>.</td>
+</tr>
+<tr>
+<td>P3557R3</td>
+<td>High-Quality Sender Diagnostics with Constexpr Exceptions</td>
+<td>Eric Niebler</td>
+<td>2025-06-10</td>
+<td>Adopted (Sofia)</td>
+<td>Reworks <code>get_completion_signatures</code> from member function
+to static constexpr function template. Adds
+<code>dependent_sender</code> concept.</td>
+</tr>
+<tr>
+<td>P3570R2</td>
+<td>Optional variants in sender/receiver</td>
+<td>Lewis Baker</td>
+<td>2025-06-14</td>
+<td>Adopted - forwarded to LWG for C++26.</td>
+<td>Adds <code>get_await_completion_adapter</code> for coroutine
+users.</td>
+</tr>
+<tr>
+<td>P3718R0</td>
+<td>Fixing Lazy Sender Algorithm Customization, Again</td>
+<td>Eric Niebler</td>
+<td>2025-07-24</td>
+<td>In Progress - open, bumped from 2025-telecon to 2026-telecon
+milestone. Third paper attempting to fix lazy customization (after
+P2999, P3303). Linked to NB comment.</td>
+<td>Further fixes to the lazy customization mechanism after P3303.</td>
+</tr>
+<tr>
+<td>P3826R3</td>
+<td>Fix Sender Algorithm Customization</td>
+<td>Eric Niebler</td>
+<td>2025-11-14</td>
+<td>In Progress - open, 2026-telecon milestone. Title evolved from
+“Defer…to C++29” (R0) to “Fix or Remove…” (R1) to “Fix…” (R3). Linked to
+5 NB comments. Under active LEWG review.</td>
+<td>Proposes deferring algorithm customization features that cannot be
+fixed in time for C++26.</td>
+</tr>
+<tr>
+<td>P3927R0</td>
+<td><code>task_scheduler</code> Support for Parallel Bulk Execution</td>
+<td>Eric Niebler</td>
+<td>2026-01-17</td>
+<td>In Progress - open, 2026-telecon milestone. January 2026 mailing.
+Not yet reviewed in telecon. Implemented in NVIDIA CCCL.</td>
+<td>Fixes <code>task_scheduler</code> not parallelizing bulk work when
+wrapping a <code>parallel_scheduler</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="wording-fixes-and-corrections">Wording Fixes and
+Corrections</h3>
+<table>
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 15%" />
+<col style="width: 6%" />
+<col style="width: 2%" />
+<col style="width: 38%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Title</th>
+<th>Author(s)</th>
+<th>Date</th>
+<th>Status</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P3396R1</td>
+<td><code>std::execution</code> wording fixes</td>
+<td>Eric Niebler</td>
+<td>2024-11-22</td>
+<td>Adopted</td>
+<td>Omnibus paper addressing multiple wording issues:
+<code>run_loop</code> preconditions, environment ownership, scheduler
+concept inconsistencies.</td>
+</tr>
+<tr>
+<td>P3388R3</td>
+<td>When Do You Know <code>connect</code> Doesn’t Throw?</td>
+<td>Ville Voutilainen</td>
+<td>2025-02-14</td>
+<td>Adopted</td>
+<td>Fixes incorrect <code>noexcept</code> clause of the constructor of
+<code>basic-state</code>.</td>
+</tr>
+<tr>
+<td>P3914R0</td>
+<td>Assorted NB comment resolutions for Kona 2025</td>
+<td>Various</td>
+<td>2025-11-07</td>
+<td>In Progress - omnibus NB comment resolution paper. Sections 2.2-2.5
+address <code>std::execution</code>. Individual resolutions adopted
+piecemeal.</td>
+<td>Addresses national body comments on the C++26 CD related to
+<code>std::execution</code>.</td>
+</tr>
+<tr>
+<td>P3887R1</td>
+<td>Make <code>when_all</code> a Ronseal Algorithm</td>
+<td>Robert Leahy</td>
+<td>2025-11-07</td>
+<td>Adopted - forwarded at Kona (SF:10/F:5/N:0/A:0/SA:0), wording merged
+into draft (Dec 2025).</td>
+<td>Fixes <code>when_all</code> stop-request handling - removes
+unnecessary stop-detection complexity that made the algorithm’s
+behaviour surprising.</td>
+</tr>
+<tr>
+<td>P3940R0</td>
+<td>Rename concept tags for C++26: <code>sender_t</code> to
+<code>sender_tag</code></td>
+<td>Arthur O’Dwyer, Yi’an Ye</td>
+<td>2025-12-15</td>
+<td>In Progress - open, 2026-telecon milestone. Post-Kona mailing. Not
+yet reviewed in telecon.</td>
+<td>Renames concept tag types (<code>sender_t</code> to
+<code>sender_tag</code>, etc.) for naming consistency - another
+post-approval naming correction.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="missing-functionality">Missing Functionality</h3>
+<table>
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 16%" />
+<col style="width: 12%" />
+<col style="width: 3%" />
+<col style="width: 21%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Title</th>
+<th>Author(s)</th>
+<th>Date</th>
+<th>Status</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P3425R1</td>
+<td>Reducing operation-state sizes for subobject child operations</td>
+<td>Eric Niebler</td>
+<td>2024-11-19</td>
+<td>Design approved - LEWG Wroclaw (Nov 2024) strong consensus.
+C++26-targeted.</td>
+<td>Optimisation saving 8 bytes per nesting level - performance fix for
+deeply nested sender expressions.</td>
+</tr>
+<tr>
+<td>P3284R4</td>
+<td><code>write_env</code> and <code>unstoppable</code> Sender
+Adaptors</td>
+<td>Eric Niebler</td>
+<td>2025-02-14</td>
+<td>Adopted (Sofia)</td>
+<td>Adds missing sender adaptors for modifying execution
+environments.</td>
+</tr>
+<tr>
+<td>P3685R0</td>
+<td>Rename <code>async_scope_token</code></td>
+<td>Ian Petersen, Jessica Wong</td>
+<td>2025-04-09</td>
+<td>Adopted</td>
+<td>Renames <code>async_scope_token</code> to <code>scope_token</code>
+for clarity.</td>
+</tr>
+<tr>
+<td>P3706R0</td>
+<td>Rename <code>join</code> and <code>nest</code> in async scope
+proposal</td>
+<td>Ian Petersen, Jessica Wong</td>
+<td>2025-04-09</td>
+<td>Adopted</td>
+<td>Renames <code>nest</code> to <code>associate</code> because original
+names were misleading.</td>
+</tr>
+<tr>
+<td>P3325R5</td>
+<td>A Utility for Creating Execution Environments</td>
+<td>Eric Niebler</td>
+<td>2025-05-22</td>
+<td>Adopted</td>
+<td>Adds <code>prop</code> and <code>env</code> class templates for
+creating and manipulating environments - fundamental infrastructure that
+was absent.</td>
+</tr>
+<tr>
+<td>P2079R10</td>
+<td>Parallel scheduler</td>
+<td>Lee Howes</td>
+<td>2025-06-02</td>
+<td>Adopted (Sofia)</td>
+<td>Provides <code>system_context</code> and
+<code>system_scheduler</code> - a basic execution context needed to
+actually run code.</td>
+</tr>
+<tr>
+<td>P3149R11</td>
+<td><code>async_scope</code></td>
+<td>Ian Petersen, Jessica Wong, Kirk Shoop, et al.</td>
+<td>2025-06-02</td>
+<td>Adopted (Sofia)</td>
+<td>Provides the async scope abstraction needed for safe non-sequential
+concurrency - replacing the removed
+<code>ensure_started</code>/<code>start_detached</code>.</td>
+</tr>
+<tr>
+<td>P3164R4</td>
+<td>Early Diagnostics for Sender Expressions</td>
+<td>Eric Niebler</td>
+<td>2025-06-02</td>
+<td>Adopted</td>
+<td>Moves diagnosis of invalid sender expressions to construction time
+rather than connection time.</td>
+</tr>
+<tr>
+<td>P3552R3</td>
+<td>Add a Coroutine Task Type</td>
+<td>Dietmar Kuhl, Maikel Nadolski</td>
+<td>2025-06-20</td>
+<td>Adopted (Sofia)</td>
+<td>Adds <code>std::execution::task</code> - the coroutine type that
+users need to use the framework. Adopted at Sofia with 29 abstentions
+and 11 against (77-11-29).</td>
+</tr>
+<tr>
+<td>P3815R1</td>
+<td>Add <code>scope_association</code> concept to P3149</td>
+<td>Jessica Wong, Ian Petersen</td>
+<td>2025-09-12</td>
+<td>Adopted - closed Dec 2025. NB comment resolution.</td>
+<td>Adds missing <code>scope_association</code> concept needed by the
+async scope facility.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="post-adoption-issues">Post-Adoption Issues</h3>
+<table>
+<colgroup>
+<col style="width: 1%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 2%" />
+<col style="width: 43%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Title</th>
+<th>Author(s)</th>
+<th>Date</th>
+<th>Status</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P3433R1</td>
+<td>Allocator Support for Operation States</td>
+<td>Dietmar Kuhl</td>
+<td>2024-10-17</td>
+<td>Plenary-approved - closed. LEWG Wroclaw (Nov 2024) approved design
+with strong consensus (SF:4/F:6/N:0/A:0/SA:0). Wording merged into
+draft.</td>
+<td>Identifies allocator gaps in <code>ensure_started</code>,
+<code>split</code>, and <code>start_detached</code> operation states -
+confirming allocator support was missing from the original design.</td>
+</tr>
+<tr>
+<td>P3481R5</td>
+<td><code>std::execution::bulk()</code> issues</td>
+<td>Lucian Radu Teodorescu, Lewis Baker, Ruslan Arutyunyan</td>
+<td>2024-10-17</td>
+<td>Plenary-approved - closed. Five revisions. SG1 Wroclaw (Nov 2024)
+achieved unanimous consent on splitting bulk into <code>bulk</code>,
+<code>bulk_chunked</code>, and <code>bulk_unchunked</code>. Wording
+merged into draft.</td>
+<td>Addresses outstanding issues with the bulk algorithm; required five
+revisions and addition of two new API variants
+(<code>bulk_chunked</code>, <code>bulk_unchunked</code>).</td>
+</tr>
+<tr>
+<td>P3796R1</td>
+<td>Coroutine Task Issues</td>
+<td>Dietmar Kuhl</td>
+<td>2025-07-24</td>
+<td>In Progress - open, 2026-telecon milestone. Under active LEWG
+telecon review (Aug-Sep 2025); some sections achieved consensus, others
+still pending. Multiple LWG issues opened (4329-4332, 4344). Linked to
+NB comments.</td>
+<td>Collects issues discovered after the task type was forwarded,
+including <code>unhandled_stopped</code> missing <code>noexcept</code>,
+wording issues, and performance concerns.</td>
+</tr>
+<tr>
+<td>P3801R0</td>
+<td>Concerns about the design of <code>std::execution::task</code></td>
+<td>Jonathan Wakely</td>
+<td>2025-07-24</td>
+<td>In Progress - open, 2026-telecon milestone. LEWG telecon review
+(2025-08-26) reached “no consensus” on the core stack overflow issue;
+“consensus against” treating dangling reference concern as C++26
+blocker. Linked to NB comment.</td>
+<td>Documents significant concerns including stack overflow risk due to
+lack of symmetric transfer support.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lwg-issues">LWG Issues</h3>
+<table>
+<colgroup>
+<col style="width: 3%" />
+<col style="width: 24%" />
+<col style="width: 4%" />
+<col style="width: 22%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Title</th>
+<th>Date</th>
+<th>Status</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LWG 4190</td>
+<td><code>completion-signatures-for</code> specification is
+recursive</td>
+<td>2025-01-02</td>
+<td>Open - circular dependency in spec.</td>
+<td>Specification defect: recursive definition makes the requirement
+impossible to implement.</td>
+</tr>
+<tr>
+<td>LWG 4206</td>
+<td><code>connect_result_t</code> should be constrained with
+<code>sender_to</code></td>
+<td>2025-02-04</td>
+<td>Open - Priority 1.</td>
+<td>Unconstrained alias causes hard errors instead of SFINAE-friendly
+failures.</td>
+</tr>
+<tr>
+<td>LWG 4215</td>
+<td><code>run_loop::finish</code> should be <code>noexcept</code></td>
+<td>2025-02-13</td>
+<td>Open - correctness bug.</td>
+<td>Throwing <code>finish()</code> causes <code>sync_wait</code> to hang
+forever.</td>
+</tr>
+<tr>
+<td>LWG 4260</td>
+<td>Query objects must be default constructible</td>
+<td>2025-05-07</td>
+<td>Resolved (Kona 2025)</td>
+<td>CPO constructors were not mandated <code>noexcept</code>.</td>
+</tr>
+<tr>
+<td>LWG 4355</td>
+<td><code>connect-awaitable()</code> should mandate receiver
+completion-signals</td>
+<td>2025-08-27</td>
+<td>Open</td>
+<td>Redundant <code>requires</code>-clause should defer to parent
+<code>Mandates</code>.</td>
+</tr>
+<tr>
+<td>LWG 4356</td>
+<td><code>connect()</code> should use
+<code>get_allocator(get_env(rcvr))</code></td>
+<td>2025-08-27</td>
+<td>Open - directly relevant to allocator timing issue.</td>
+<td><code>connect-awaitable</code> should respect the receiver’s
+allocator.</td>
+</tr>
+<tr>
+<td>LWG 4358</td>
+<td><code>[exec.as.awaitable]</code> uses Preconditions when should be
+constraint</td>
+<td>2025-08-27</td>
+<td>Resolved (Kona 2025)</td>
+<td>Incorrectly-written preconditions should be
+<code>Mandates</code>.</td>
+</tr>
+<tr>
+<td>LWG 4360</td>
+<td><code>awaitable-sender</code> concept should qualify
+<code>awaitable-receiver</code></td>
+<td>2025-08-27</td>
+<td>Resolved (Kona 2025)</td>
+<td>Ambiguous type reference in the <code>awaitable-sender</code>
+concept.</td>
+</tr>
+<tr>
+<td>LWG 4368</td>
+<td>Potential dangling reference from <code>transform_sender</code></td>
+<td>2025-08-31</td>
+<td>Open - Priority 1. Stack-use-after-scope vulnerability.</td>
+<td>Returns xvalue to a dead temporary - potential undefined
+behaviour.</td>
+</tr>
+<tr>
+<td>LWG 4369</td>
+<td><code>check-types</code> for <code>upon_error</code> and
+<code>upon_stopped</code> is wrong</td>
+<td>2025-08-31</td>
+<td>Resolved (Kona 2025)</td>
+<td>Uses <code>set_value_t</code> where
+<code>set_error_t</code>/<code>set_stopped_t</code> should be used.</td>
+</tr>
+<tr>
+<td>LWG 4336</td>
+<td><code>bulk</code> vs. <code>task_scheduler</code></td>
+<td>2025-10-23</td>
+<td>Open - NB comment. C++26-targeted.</td>
+<td><code>task_scheduler</code> does not parallelise bulk work -
+dispatching <code>bulk</code> via a <code>task_scheduler</code> wrapping
+<code>parallel_scheduler</code> serialises execution. P3927R0 proposes
+the fix.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="allocator-related-nb-comments-kona-2025">Allocator-Related NB
+Comments (Kona 2025)</h3>
+<table>
+<colgroup>
+<col style="width: 52%" />
+<col style="width: 36%" />
+<col style="width: 10%" />
+</colgroup>
+<thead>
+<tr>
+<th>NB Comment</th>
+<th>Title</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/cplusplus/nbballot/issues/959">US
+255</a> (LWG4335)</td>
+<td>Use allocator from receiver’s environment</td>
+<td>Needs wording</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cplusplus/nbballot/issues/961">US
+253</a> (LWG4333)</td>
+<td>Allow use of arbitrary allocators for coroutine frame</td>
+<td>Needs wording</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total: 30 papers, 11 LWG issues, and 2 NB comments - 43 items
+modifying a single feature after its approval.</strong></p>
 <hr />
 <h2 id="references">References</h2>
 <ul>
-<li>[P3826R3] Eric Niebler. “Fix Sender Algorithm Customization.”
-2026-01-05.</li>
-<li>[P2300R10] Michał Dominiak, et al. “std::execution.”</li>
-<li>[P3552R3] Dietmar Kühl, Maikel Nadolski. “Add a Coroutine Task
-Type.”</li>
-<li>[P4003R0] Vinnie Falco. “IoAwaitables: A Coroutines-First Execution
-Model”</li>
+<li><a href="https://wg21.link/p2079r10">P2079R10</a> Lee Howes.
+“Parallel scheduler.” 2025-06-02.</li>
+<li><a href="https://wg21.link/p2300r4">P2300R4</a> Michal Dominiak, et
+al. “std::execution.” 2022-01-18.</li>
+<li><a href="https://wg21.link/p2300r10">P2300R10</a> Michal Dominiak,
+et al. “std::execution.” 2024-07-16.</li>
+<li><a href="https://wg21.link/p2762r2">P2762R2</a> Dietmar Kuhl.
+“Sender/Receiver Interface For Networking.” 2023-10-15.</li>
+<li><a href="https://wg21.link/p2855r1">P2855R1</a> Ville Voutilainen.
+“Member customization points for Senders and Receivers.”
+2024-03-18.</li>
+<li><a href="https://wg21.link/p2999r3">P2999R3</a> Eric Niebler.
+“Sender Algorithm Customization.” 2024-04-16.</li>
+<li><a href="https://wg21.link/p3149r11">P3149R11</a> Ian Petersen,
+Jessica Wong, Kirk Shoop, et al. “async_scope.” 2025-06-02.</li>
+<li><a href="https://wg21.link/p3175r3">P3175R3</a> Eric Niebler.
+“Reconsidering the std::execution::on algorithm.” 2024-10-15.</li>
+<li><a href="https://wg21.link/p3187r1">P3187R1</a> Lewis Baker, Eric
+Niebler. “Remove ensure_started and start_detached from P2300.”
+2024-10-15.</li>
+<li><a href="https://wg21.link/p3433r1">P3433R1</a> Dietmar Kuhl.
+“Allocator Support for Operation States.” 2025-06-18.</li>
+<li><a href="https://wg21.link/p3552r3">P3552R3</a> Dietmar Kuhl, Maikel
+Nadolski. “Add a Coroutine Task Type.” 2025-06-20.</li>
+<li><a href="https://wg21.link/p3557r3">P3557R3</a> Eric Niebler.
+“High-Quality Sender Diagnostics with Constexpr Exceptions.”
+2025-06-10.</li>
+<li><a href="https://wg21.link/p3796r1">P3796R1</a> Dietmar Kuhl.
+“Coroutine Task Issues.” 2025-07-24.</li>
+<li><a href="https://wg21.link/p3801r0">P3801R0</a> Jonathan Wakely.
+“Concerns about the design of std::execution::task.” 2025-07-24.</li>
+<li><a href="https://wg21.link/p3826r3">P3826R3</a> Eric Niebler. “Fix
+Sender Algorithm Customization.” 2026-01-05.</li>
+<li><a href="https://wg21.link/p3927r0">P3927R0</a> Eric Niebler.
+“task_scheduler Support for Parallel Bulk Execution.” 2026-01-17.</li>
+<li><a href="https://wg21.link/p4003r0">P4003R0</a> Vinnie Falco.
+“IoAwaitables: A Coroutines-First Execution Model.” 2026-01-21.</li>
 </ul>
 </body>
 </html>
