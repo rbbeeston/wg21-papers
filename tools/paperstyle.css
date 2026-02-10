@@ -491,9 +491,14 @@ thead {
 }
 
 th {
+    background-color: var(--text-secondary);
   font-weight: 700;
   text-align: left;
   padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.document-info th {
+    background-color: transparent;
 }
 
 td {

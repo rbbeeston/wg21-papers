@@ -1,14 +1,14 @@
+::: {.document-info}
 | Document | D4008R0 |
 |----------|---------|
 | Date:       | 2026-02-09
 | Reply-to:   | Vinnie Falco \<vinnie.falco@gmail.com\>
 | Audience:   | All of WG21
-
----
+::: 
 
 # The C++ Standard Cannot Connect to the Internet
 
-**Abstract**
+## Abstract
 
 This paper discusses a key observation: The C++ Standard cannot connect to the Internet. The problem is not missing sockets. Third-party networking libraries exist. The problem is that C++ lacks a standard asynchronous execution model designed for I/O, which prevents asynchronous algorithms from composing across library boundaries. Every other major programming language solved this problem by standardizing an async I/O foundation, and the result was an explosion of higher-level frameworks. C++ has no such ecosystem because there is no agreed-upon foundation to build on. This paper examines the evidence, proposes three tests that a standard async model should meet, and asks the committee to consider whether networking deserves higher priority than it currently receives.
 
