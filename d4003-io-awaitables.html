@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>D4003: IoAwaitables: A Coroutines-Only Execution Model</title>
+  <title>D4003: IoAwaitables: A Coroutines-Only Framework</title>
   <style type="text/css">
 
 @font-face {
@@ -143,6 +143,30 @@ min-width: 160px;
 display: inline-block;
 font-weight: 700;
 }
+.document-info table {
+margin: 0;
+}
+.document-info table thead {
+background-color: transparent;
+color: var(--text);
+}
+.document-info table th {
+background-color: transparent;
+}
+.document-info table colgroup col:first-child {
+width: 1% !important;
+}
+.document-info table colgroup col:last-child {
+width: 99% !important;
+}
+.document-info table td:first-child,
+.document-info table th:first-child {
+min-width: 75px;
+}
+.document-info table td {
+padding: var(--spacing-sm) var(--spacing-md);
+border-bottom: none;
+}
 
 h1, h2, h3, h4, h5, h6 {
 font-family: var(--font-body);
@@ -231,6 +255,10 @@ padding: var(--spacing-lg);
 margin: var(--spacing-lg) 0;
 line-height: 1.55;
 tab-size: 4;
+}
+blockquote pre {
+border-left: none;
+background-color: white;
 }
 pre code {
 background: none;
@@ -690,6 +718,7 @@ color: #333 !important;
 thead {
 background-color: #ddd !important;
 color: #000 !important;
+-webkit-print-color-adjust: exact;
 }
 tbody tr:nth-child(even) {
 background-color: #f5f5f5 !important;
@@ -816,7 +845,7 @@ outline: none;
   <div class="header-text">WG21 Proposal</div>
 </header>
 
-<h1>IoAwaitables: A Coroutines-Only Execution Model</h1>
+<h1>IoAwaitables: A Coroutines-Only Framework</h1>
 
 <!-- Document Metadata -->
 <div class="document-info">

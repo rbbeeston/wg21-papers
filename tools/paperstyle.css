@@ -174,6 +174,37 @@ body {
   font-weight: 700;
 }
 
+.document-info table {
+  margin: 0;
+}
+
+.document-info table thead {
+  background-color: transparent;
+  color: var(--text);
+}
+
+.document-info table th {
+  background-color: transparent;
+}
+
+.document-info table colgroup col:first-child {
+  width: 1% !important;
+}
+
+.document-info table colgroup col:last-child {
+  width: 99% !important;
+}
+
+.document-info table td:first-child,
+.document-info table th:first-child {
+  min-width: 75px;
+}
+
+.document-info table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: none;
+}
+
 /* --------------------------------------------------------------------------
    Typography - Headings
    -------------------------------------------------------------------------- */
@@ -286,6 +317,11 @@ pre {
   margin: var(--spacing-lg) 0;
   line-height: 1.55;
   tab-size: 4;
+}
+
+blockquote pre {
+  border-left: none;
+  background-color: white;
 }
 
 pre code {
@@ -851,6 +887,7 @@ del .variable {
   thead {
     background-color: #ddd !important;
     color: #000 !important;
+    -webkit-print-color-adjust: exact;
   }
 
   tbody tr:nth-child(even) {
