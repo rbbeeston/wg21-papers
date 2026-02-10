@@ -771,9 +771,9 @@ Because launch functions are constrained on the concept rather than a concrete t
 
 ### 4.7 Different Design Tradeoffs
 
-`std::execution` positions itself as a universal abstraction for asynchronous work, yet its backward query model reflects different priorities than networking's requirements. Coroutine frame allocation happens *before* the coroutine body executes—the allocator must be known at invocation, not discovered later through receiver queries. The backward flow that works for GPU dispatch (where the work graph is built first, then executed) optimizes for different patterns than I/O, where context must be present at the moment of creation. This represents different design assumptions rather than a flaw—`std::execution` optimizes for GPU/parallel workloads where these tradeoffs make sense. Forward propagation—context flowing from caller to callee at each suspension point—is the design that respects coroutine allocation semantics.
+Coroutine frame allocation happens *before* the coroutine body executes. The allocator must be known at invocation, not discovered later through receiver queries. This is the fundamental tension between `std::execution`'s backward query model and coroutine-based I/O.
 
-[P2300](https://wg21.link/p2300) itself acknowledges this timing in its "Dependently-typed senders" section:
+[P2300](https://wg21.link/p2300) acknowledges this timing in its "Dependently-typed senders" section:
 
 > "In the sender/receiver model, as with coroutines, contextual information about the current execution is most naturally propagated from the consumer to the producer. In coroutines, that means information like stop tokens, allocators and schedulers are propagated from the calling coroutine to the callee. In sender/receiver, that means that that contextual information is associated with the receiver and is queried by the sender and/or operation state **after** the sender and the receiver are `connect`-ed."
 
@@ -814,7 +814,7 @@ flowchart LR
     S4 -.->|"Too late!"| S2
 ```
 
-The coroutine frame is allocated at invocation, but the allocator isn't queryable until `connect`—after the allocation has already happened. No amount of query machinery can retroactively inject an allocator into an allocation that has already occurred. This isn't a missing feature; it's a fundamental ordering constraint that the backward query model cannot satisfy.
+The frame is allocated at invocation; the allocator isn't queryable until `connect`. No query machinery can retroactively fix an allocation that already happened.
 
 Our forward flow model solves this:
 
@@ -826,7 +826,7 @@ flowchart LR
     I1 -.->|"Allocator ready"| I3
 ```
 
-The same timing constraint applies to stop tokens. In `std::execution`, the token is discovered via `get_stop_token(get_env(receiver))`—available only after `connect()`. In our model, the token propagates forward alongside the executor via the same `await_suspend` signature, available from the moment the coroutine begins.
+The same timing constraint applies to stop tokens. In `std::execution`, the token is discovered via `get_stop_token(get_env(receiver))`—available only after `connect()`. In our model, the token propagates forward alongside the executor via `await_suspend`, available from the moment the coroutine begins.
 
 ### 4.8 Type Erasure
 
@@ -837,24 +837,7 @@ auto sndr = schedule(sched) | then(f) | then(g);
 // Type: then_sender<then_sender<schedule_sender<Sched>, F>, G>
 ```
 
-This "sender type explosion" makes storing senders in data structures or passing them through non-templated interfaces difficult. Users need type erasure—but C++26 `std::execution` provides none. The [standard library](https://en.cppreference.com/w/cpp/execution) includes sender concepts, factories, adaptors, and consumers, but **no type-erasing wrapper**.
-
-Facebook's libunifex provides `any_sender_of` as a workaround, but it has significant limitations:
-
-- Heap allocation for every type-erased sender
-- Coroutine-based senders pay twice: frame allocation + erasure wrapper
-- Hard-coded to `std::exception_ptr`—cannot handle `std::error_code` without conversion
-- Essentially abandoned: the [last commit](https://github.com/facebookexperimental/libunifex/commit/c93740d3c0ee74311c442f55295cd0b9c8bd63cd) was over two years ago, addressing MSVC compatibility rather than the fundamental error type limitations
-
-The P2300 architects themselves acknowledged these problems. [Eric Niebler noted](https://github.com/facebookexperimental/libunifex/issues/244#issuecomment-810686094):
-
-> "any_sender_of<> is only able to handle std::exception_ptr. There currently isn't a generalization of any_sender_of<> that can handle more than std::exception_ptr... A stop-gap would be to change any_sender_of to handle error types other than std::exception_ptr by passing them to std::make_exception_ptr. That's not a super-awesome solution, though."
-
-[Lewis Baker added](https://github.com/facebookexperimental/libunifex/issues/244#issuecomment-812755302):
-
-> "Longer term, it probably makes sense to allow the any_sender_of type to be parameterisable with both a list of set_value overloads and a list of set_error overloads that it expects/supports."
-
-These "longer term" fixes were proposed in 2021. They remain unimplemented.
+Storing these in data structures or passing them through non-templated interfaces requires type erasure—but C++26 `std::execution` provides none. Facebook's libunifex offers `any_sender_of`, but it heap-allocates every erased sender, is hard-coded to `std::exception_ptr`, and is [effectively abandoned](https://github.com/facebookexperimental/libunifex/commit/c93740d3c0ee74311c442f55295cd0b9c8bd63cd). [Eric Niebler acknowledged](https://github.com/facebookexperimental/libunifex/issues/244#issuecomment-810686094) in 2021 that `any_sender_of` cannot handle error types beyond `exception_ptr`. The fix remains unimplemented.
 
 Coroutines provide structural type erasure at no additional cost:
 
@@ -872,7 +855,7 @@ task<int> t;                     // Simple type, not task<int, Ex, Alloc, Token>
 | Error types         | Any (`error_code`, etc.)    | Only `exception_ptr`         |
 | Conversion overhead | None                        | Required                     |
 
-The difference is architectural. `std::execution` builds typed operation graphs that must be explicitly erased after construction—and the only available eraser is incomplete, non-standard, and unmaintained. Coroutines erase at the handle boundary naturally: `task<T>` remains `task<T>` regardless of which executor, allocator, or stop token it uses. Context propagates through type-erased channels, not template parameters.
+`task<T>` remains `task<T>` regardless of which executor, allocator, or stop token it uses. Context propagates through type-erased channels, not template parameters.
 
 ---
 
@@ -1187,35 +1170,17 @@ This is safe because:
 
 ## 7. Comparing Design Approaches
 
-If networking is required to integrate with `std::execution`, I/O libraries must pay a complexity tax regardless of whether they benefit from the framework's abstractions.
+Integrating with `std::execution` imposes a complexity tax on I/O libraries whether they benefit from the framework or not.
 
 ### 7.1 Integration Considerations
 
-To participate in the sender/receiver ecosystem, networking code must implement:
-
-- **Query protocol compliance**: `get_env`, `get_domain`, `get_completion_scheduler`—even if only to return defaults
-- **Concept satisfaction**: Meet sender/receiver requirements designed for GPU algorithm dispatch
-- **Transform machinery**: Domain transforms execute even when they select the only available implementation
-- **API surface expansion**: Expose attributes and queries irrelevant to I/O operations
-
-A socket returning `default_domain` still participates in the dispatch protocol. The [P3826](https://wg21.link/p3826) machinery runs, finds no customization, and falls through to the default—overhead without corresponding benefit for I/O workloads.
+Networking code that participates in the sender/receiver ecosystem must implement `get_env`, `get_domain`, `get_completion_scheduler`, and satisfy sender/receiver concepts—even when only returning defaults. A socket returning `default_domain` still runs through the [P3826](https://wg21.link/p3826) dispatch protocol, finds no customization, and falls through to the default.
 
 ### 7.2 Type Leakage Through connect_result_t
 
-The sender/receiver model solves a real problem: constructing a compile-time call graph for heterogeneous computation chains. When all types are visible at `connect()` time, the compiler can optimize across operation boundaries—inlining GPU kernel launches, eliminating intermediate buffers, and selecting optimal memory transfer strategies. For workloads where dispatch overhead is measured in nanoseconds and operations complete in microseconds, this visibility enables meaningful optimization.
+The sender/receiver model's compile-time call graph enables real optimization for GPU workloads: inlining kernel launches, eliminating intermediate buffers, selecting memory transfer strategies. For networking, where I/O latency dwarfs dispatch overhead by orders of magnitude, this visibility provides no benefit.
 
-Networking operates in a different regime. I/O latency is measured in tens of microseconds (NVMe storage) to hundreds of milliseconds (network round-trips). A 10-nanosecond dispatch optimization is irrelevant when the operation takes 100,000 nanoseconds. The compile-time call graph provides no benefit—there is no GPU kernel to inline, no heterogeneous dispatch to optimize.
-
-Yet the sender/receiver model requires type visibility regardless:
-
-```cpp
-// std::execution pattern
-execution::sender auto snd = socket.async_read(buf);
-execution::receiver auto rcv = /* ... */;
-auto state = execution::connect(snd, rcv);  // Type: connect_result_t<Sender, Receiver>
-```
-
-The `connect_result_t` type encodes the full operation state. Algorithms that compose senders must propagate these types:
+Yet the model requires type visibility regardless:
 
 ```cpp
 // From P2300: operation state types leak into composed operations
@@ -1226,11 +1191,11 @@ struct _retry_op {
 };
 ```
 
-For networking, this creates the template tax we sought to avoid (§3.1)—N×M instantiations, compile time growth, implementation details exposed through every API boundary—without the optimization payoff that justifies it for GPU workloads. Our design achieves zero type leakage; composed algorithms expose only concrete _Task_ return types.
+For networking, this creates the template tax discussed in §3.1—N×M instantiations, compile time growth, implementation details exposed at every API boundary—without corresponding optimization payoff. Our design achieves zero type leakage; composed algorithms expose only concrete _Task_ return types.
 
 ### 7.3 The Core Question
 
-The question is not whether [P2300](https://wg21.link/p2300)/[P3826](https://wg21.link/p3826) break networking code. They don't—defaults work. The question is whether networking should pay for abstractions it doesn't use.
+[P2300](https://wg21.link/p2300)/[P3826](https://wg21.link/p3826) don't break networking code—defaults work. The question is whether networking should pay for abstractions it doesn't use.
 
 | Abstraction | Networking Need | GPU/Parallel Need |
 |-------------|-----------------|-------------------|
@@ -1239,7 +1204,7 @@ The question is not whether [P2300](https://wg21.link/p2300)/[P3826](https://wg2
 | Sender transforms | Pass-through only | Algorithm selection |
 | Typed operation state | ABI liability | Optimization opportunity |
 
-Our analysis suggests the cost is not justified when a simpler, networking-native design achieves the same goals without the tax.
+A simpler, networking-native design achieves the same goals without the tax.
 
 ---
 
@@ -1296,6 +1261,16 @@ Promise types inherit from this mixin to gain:
 
 The `await_transform` method uses `if constexpr` to dispatch tag types to immediate awaiters (where `await_ready()` returns `true`), enabling `co_await get_executor()` and `co_await get_stop_token()` without suspension. Other awaitables pass through to `transform_awaitable`, which derived classes can override to add custom transformation logic.
 
+> **Non-normative note.** Derived promise types that need additional `await_transform` overloads should override `transform_awaitable` rather than `await_transform` itself. Defining `await_transform` in the derived class shadows the base class version, silently breaking `this_coro::executor` and `this_coro::stop_token` support. If a separate `await_transform` overload is truly necessary, import the base class overloads with a using-declaration:
+>
+> ```cpp
+> struct promise_type : io_awaitable_support<promise_type>
+> {
+>     using io_awaitable_support<promise_type>::await_transform;
+>     auto await_transform(my_custom_type&& t); // additional overload
+> };
+> ```
+
 This mixin encapsulates the boilerplate that every _IoLaunchableTask_-compatible promise type would otherwise duplicate.
 
 ---
@@ -1328,7 +1303,7 @@ This direction was reasonable given the information available at the time. Howev
 
 ## 10. Closing Thoughts
 
-A reference implementation of this protocol exists as a complete library: [Capy](https://github.com/cppalliance/capy). It is also the foundation for the [Corosio](https://github.com/cppalliance/corosio) library which offers sockets, timers, signals, DNS resolution, and integration on multiple platforms. These libraries arose from use-case-first driven development with a simple mandate: produce a networking library built only for coroutines. Every design decision: forward context propagation, type-erased executors, the thread-local allocation window, emerged from solving real problems in production I/O code.
+A reference implementation of this protocol exists as a complete library: [Capy](https://github.com/cppalliance/capy). It is also the foundation for the [Corosio](https://github.com/cppalliance/corosio) library which offers sockets, timers, signals, DNS resolution, and integration on multiple platforms. A self-contained demonstration of the protocol is available on [Compiler Explorer](https://godbolt.org/z/GPrvxfEGh). These libraries arose from use-case-first driven development with a simple mandate: produce a networking library built only for coroutines. Every design decision: forward context propagation, type-erased executors, the thread-local allocation window, emerged from solving real problems in production I/O code.
 
 The future of C++ depends less on papers and more on practitioners who ship working code. Open source library authors are the true pioneers—they discover what works by building systems that people actually use. Standards should follow implementations, not the reverse. The _IoAwaitable_ protocol is offered in that spirit: not as a theoretical construct, but as a distillation of patterns proven in practice.
 
@@ -2009,7 +1984,7 @@ The analysis in this paper is not a critique of these authors' contributions, bu
 2. [N4482](https://wg21.link/n4482) — Some notes on executors and the Networking Library Proposal (2015)
 3. [P2300R10](https://wg21.link/p2300) — std::execution (Michał Dominiak, Georgy Evtushenko, Lewis Baker, Lucian Radu Teodorescu, Lee Howes, Kirk Shoop, Eric Niebler)
 4. [P2762R2](https://wg21.link/p2762) — Sender/Receiver Interface for Networking (Dietmar Kühl)
-5. [P3552R3](https://wg21.link/p3552) — Add a Coroutine Task Type (Dietmar Kühl, Maikel Nadolski)
+5. [P3552R3](https://wg21.link/p3552) — Add a Coroutine Task Type (Dietmar Kühl, Maikel Nadolski); approved for C++26 at Sofia plenary
 6. [P3826R2](https://wg21.link/p3826) — Fix or Remove Sender Algorithm Customization (Lewis Baker, Eric Niebler)
 7. [Boost.Asio](https://www.boost.org/doc/libs/release/doc/html/boost_asio.html) — Asynchronous I/O library (Chris Kohlhoff)
 8. [The C10K problem](http://www.kegel.com/c10k.html) — Scalable network programming (Dan Kegel)
