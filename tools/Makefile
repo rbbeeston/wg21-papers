@@ -44,7 +44,7 @@ PDF_OPTS += -V linestretch=1.25
 PDF_OPTS += -V fontsize=11pt
 
 # HTML-specific options
-HTML_OPTS := $(PANDOC_COMMON) --embed-resources --metadata title="" --css=$(TOOLDIR)/style.css
+HTML_OPTS := $(PANDOC_COMMON) --embed-resources --metadata title="" --css=$(TOOLDIR)/paperstyle.css
 
 # LaTeX-specific options
 LATEX_OPTS := $(PANDOC_OPTS)
