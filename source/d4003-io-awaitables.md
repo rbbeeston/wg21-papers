@@ -1989,4 +1989,3 @@ The analysis in this paper is not a critique of these authors' contributions, bu
 7. [Boost.Asio](https://www.boost.org/doc/libs/release/doc/html/boost_asio.html) — Asynchronous I/O library (Chris Kohlhoff)
 8. [The C10K problem](http://www.kegel.com/c10k.html) — Scalable network programming (Dan Kegel)
 9. [Capy](https://github.com/cppalliance/capy) — IoAwaitable protocol implementation (Vinnie Falco, Steve Gerbino)
-10. [Corosio](https://github.com/cppalliance/corosio) — Coroutine-first networking library (Vinnie Falco, Steve Gerbino)
