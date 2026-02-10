@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>d0000-on-universal-models</title>
+  <title>d0000-networking-priority</title>
   <style>
 
 code{white-space: pre-wrap;}
@@ -21,71 +21,6 @@ margin: 0 0.8em 0.2em -1.6em;
 vertical-align: middle;
 }
 .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-{ counter-reset: source-line 0; }
-pre.numberSource code > span
-{ position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-{ content: counter(source-line);
-position: relative; left: -1em; text-align: right; vertical-align: baseline;
-border: none; display: inline-block;
--webkit-touch-callout: none; -webkit-user-select: none;
--khtml-user-select: none; -moz-user-select: none;
--ms-user-select: none; user-select: none;
-padding: 0 4px; width: 4em;
-color: #aaaaaa;
-}
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
-div.sourceCode
-{ }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } 
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.at { color: #7d9029; } 
-code span.bn { color: #40a070; } 
-code span.bu { color: #008000; } 
-code span.cf { color: #007020; font-weight: bold; } 
-code span.ch { color: #4070a0; } 
-code span.cn { color: #880000; } 
-code span.co { color: #60a0b0; font-style: italic; } 
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.do { color: #ba2121; font-style: italic; } 
-code span.dt { color: #902000; } 
-code span.dv { color: #40a070; } 
-code span.er { color: #ff0000; font-weight: bold; } 
-code span.ex { } 
-code span.fl { color: #40a070; } 
-code span.fu { color: #06287e; } 
-code span.im { color: #008000; font-weight: bold; } 
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.kw { color: #007020; font-weight: bold; } 
-code span.op { color: #666666; } 
-code span.ot { color: #007020; } 
-code span.pp { color: #bc7a00; } 
-code span.sc { color: #4070a0; } 
-code span.ss { color: #bb6688; } 
-code span.st { color: #4070a0; } 
-code span.va { color: #19177c; } 
-code span.vs { color: #4070a0; } 
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
 </style>
   <style type="text/css">
 
@@ -810,7 +745,7 @@ outline: none;
 <thead>
 <tr>
 <th>Document</th>
-<th>D0000</th>
+<th>D4008R0</th>
 </tr>
 </thead>
 <tbody>
@@ -829,1003 +764,441 @@ outline: none;
 </tbody>
 </table>
 </div>
-<h1 id="on-universal-models">On Universal Models</h1>
+<h1 id="the-c-standard-cannot-connect-to-the-internet">The C++ Standard
+Cannot Connect to the Internet</h1>
 <h2 id="abstract">Abstract</h2>
-<p>Software engineering has a recurring pattern: smart people see
-commonality across domains and conclude that one abstraction should
-serve them all. Sometimes they are right. TCP/IP and IEEE 754 are
-genuine universal models that emerged from practice and proved
-themselves across decades of deployment. More often they are wrong, and
-the universal framework loses to pragmatic, specialized alternatives.
-This paper examines the evidence for and against a universal execution
-model in C++, focusing on <code>std::execution</code> (<a href="https://wg21.link/p2300">P2300</a>). It proposes no wording
-changes. It asks the committee to consider whether the evidence supports
-the current direction, or whether specialization with interoperation
-might serve the C++ community better.</p>
+<p>This paper discusses a key observation: The C++ Standard cannot
+connect to the Internet. The problem is not missing sockets. Third-party
+networking libraries exist. The problem is that C++ lacks a standard
+asynchronous execution model designed for I/O, which prevents
+asynchronous algorithms from composing across library boundaries. Every
+other major programming language solved this problem by standardizing an
+async I/O foundation, and the result was an explosion of higher-level
+frameworks. C++ has no such ecosystem because there is no agreed-upon
+foundation to build on. This paper examines the evidence, proposes three
+tests that a standard async model should meet, and asks the committee to
+consider whether networking deserves higher priority than it currently
+receives.</p>
 <hr />
-<h2 id="introduction">1. Introduction</h2>
-<p>The desire for a universal model is one of the most natural instincts
-in software design. A programmer looks at callbacks, futures,
-coroutines, and sender/receiver pipelines and thinks: these are all
-doing the same thing. Surely one abstraction can unify them.</p>
-<p>That instinct is often productive. But it has a well-documented
-failure mode.</p>
-<p>Joel Spolsky identified it in 2001, coining the term “architecture
-astronaut”:</p>
-<blockquote>
-<p>“When you go too far up, abstraction-wise, you run out of oxygen.
-Sometimes, smart thinkers just don’t know when to stop, and they create
-these absurd, all-encompassing, high-level pictures of the universe that
-are all good and fine, but don’t actually mean anything at all.”</p>
-<p><a href="https://www.joelonsoftware.com/2001/04/21/dont-let-architecture-astronauts-scare-you/">Joel
-Spolsky, “Don’t Let Architecture Astronauts Scare You”</a> (2001)</p>
-</blockquote>
-<p>The MIT Exokernel paper put the same observation in more formal
-terms:</p>
-<blockquote>
-<p>“It is fundamentally impossible to define abstractions that are
-appropriate for all areas and implement them efficiently in all
-situations.”</p>
-<p><a href="https://people.eecs.berkeley.edu/~brewer/cs262b/hotos-exokernel.pdf">Engler
-et al., “Exokernel: An Operating System Architecture for
-Application-Level Resource Management”</a> (1995)</p>
-</blockquote>
-<p>And Ted Elliot captured the tradeoff precisely:</p>
-<blockquote>
-<p>“An all-powerful abstraction is a meaningless one. You’ve just got a
-new word for ‘thing’.”</p>
-<p><a href="https://tedinski.com/2018/01/30/the-one-ring-problem-abstraction-and-power.html">Ted
-Elliot, “The One Ring Problem”</a> (2018)</p>
-</blockquote>
-<p>None of this means universal models are impossible. They exist and
-they matter. But the history of computing suggests they are rare, and
-that the instinct to create them runs far ahead of the evidence needed
-to justify them.</p>
-<p>This paper examines <code>std::execution</code> through that lens.
-The people who designed it are talented. The work they have done
-contains genuine insights. The question is whether the evidence supports
-declaring it the universal execution model for C++, or whether the
-direction has gotten ahead of itself in a domain that is genuinely
-difficult.</p>
-<p>The asymmetry of risk makes this question worth asking. If
-<code>std::execution</code> is truly universal, it will prove itself
-through adoption and this paper will have been an unnecessary caution.
-If it is not universal and we mandate it anyway, the cost compounds for
-decades. The C++ standard still cannot connect to the internet. Getting
-the execution model wrong makes that problem harder, not easier.</p>
+<h2 id="the-observation">1. The Observation</h2>
+<p>The C++ standard cannot connect to the internet, and it is not for
+lack of trying. Third-party networking libraries exist and are widely
+used. <a href="https://www.boost.org/doc/libs/release/doc/html/boost_asio.html">Boost.Asio</a>
+has been in production for over twenty years. But Asio itself ships as
+two incompatible published versions, Boost.Asio and <a href="https://github.com/chriskohlhoff/asio">standalone Asio</a>, with
+different namespaces and different build configurations. This is the
+coordination problem in miniature: even the most popular, most mature
+C++ networking library cannot agree with itself on a single
+interface.</p>
+<p>The deeper problem is not sockets. It is the absence of a standard
+asynchronous execution model for I/O.</p>
+<p>If a programmer wants to write a composable async algorithm, for
+example an HTTP conversation, a WebSocket message exchange, or an
+asynchronous file transfer with optional compression, what execution
+model should they use? There is no answer. There are Asio completion
+tokens, Meta’s <a href="https://github.com/facebook/folly/blob/main/folly/experimental/coro/README.md">folly::coro</a>,
+<a href="https://doc.qt.io/qt-6/signalsandslots.html">Qt signals and
+slots</a>, custom callback systems, promise/future chains, and ad-hoc
+event loops. Each is an island. Algorithms expressed in one model cannot
+compose with algorithms from another.</p>
+<p>Not every committee member works with network programming daily. WG21
+is full of experts in language design, template metaprogramming,
+numerics, concurrency, safety, and many other domains. This paper is
+written from a networking practitioner’s perspective, for colleagues who
+may not have the same daily experience with this problem. It aims to
+explain, with evidence, why the networking gap matters and what it
+costs.</p>
 <hr />
-<h2 id="the-historical-record">2. The Historical Record</h2>
-<h3 id="osi-vs-tcpip">2.1 OSI vs TCP/IP</h3>
-<p>The Open Systems Interconnection model is the canonical example of a
-universal framework that lost to a pragmatic alternative.</p>
-<p>OSI was designed by talented, well-intentioned engineers solving a
-real problem. Its seven-layer architecture was comprehensive,
-well-documented, and backed by international standards bodies,
-governments, and major corporations. By the mid-1980s, its adoption
-appeared inevitable. As the <a href="https://spectrum.ieee.org/osi-the-internet-that-wasnt">IEEE
-Spectrum article</a> documents, “The Defense Department officially
-embraced the conclusions of a 1985 National Research Council
-recommendation to transition away from TCP/IP and toward OSI,” and “the
-Department of Commerce issued a mandate in 1988 that the OSI standard be
-used in all computers purchased by U.S. government agencies.”</p>
-<p>And yet TCP/IP won. Einar Stefferud captured the outcome:</p>
-<blockquote>
-<p>“OSI is a beautiful dream, and TCP/IP is living it!”</p>
-<p><a href="https://spectrum.ieee.org/osi-the-internet-that-wasnt">IEEE
-Spectrum, “OSI: The Internet That Wasn’t”</a> (Andrew Russell, 2013)</p>
-</blockquote>
-<p>The same article identifies what went wrong:</p>
-<blockquote>
-<p>“Openness and modularity, the key principles for coordinating the
-project, ended up killing OSI.”</p>
-</blockquote>
-<p>Louis Pouzin, a veteran of the effort, observed in 1991 (quoted in
-the <a href="https://spectrum.ieee.org/osi-the-internet-that-wasnt">same
-article</a>):</p>
-<blockquote>
-<p>“Government and corporate policies never fail to recommend OSI as the
-solution. But, it is easier and quicker to implement homogeneous
-networks based on proprietary architectures, or else to interconnect
-heterogeneous systems with TCP-based products.”</p>
-</blockquote>
-<p>OSI did not fail because its designers were incompetent. It failed
-because the universal framework was too heavy to compete with pragmatic,
-deployed alternatives. The comprehensive design that looked like a
-strength on paper became a liability in practice.</p>
-<p>A natural objection is that OSI failed simply because TCP/IP had too
-much momentum — an installed base that was too large to displace. But
-OSI had enormous institutional momentum of its own. The U.S. government
-mandated it for procurement (<a href="https://en.wikipedia.org/wiki/Government_Open_Systems_Interconnection_Profile">GOSIP</a>,
-1988). European governments imposed similar requirements. ISO, the ITU,
-and major corporations backed it (<a href="https://spectrum.ieee.org/osi-the-internet-that-wasnt">IEEE
-Spectrum</a>). If momentum were the deciding factor, the mandates should
-have worked. They didn’t. TCP/IP kept winning despite active
-institutional resistance, because it was simpler to implement, faster to
-deploy, and cheaper to maintain. The momentum TCP/IP accumulated was a
-consequence of its narrow, pragmatic design — not an independent
-variable that happened to favor it.</p>
-<h3 id="everything-is-an-object">2.2 “Everything Is an Object”</h3>
-<p>Object-oriented programming went through a similar cycle. The claim
-that “everything is an object” positioned OOP as a universal modeling
-philosophy. Richard Gabriel argued at OOPSLA 2002 that this claim gave
-OOP a privileged position that starved research into alternative
-paradigms (<a href="https://dreamsongs.com/Files/ObjectsHaveFailed.pdf">Gabriel,
-“Objects Have Failed”</a>).</p>
-<p>The Gang of Four’s <em>Design Patterns</em> (1994) articulated the
-corrective: “Favor object composition over class inheritance.” The
-industry eventually learned that deep inheritance hierarchies were
-brittle and that composition through narrow interfaces produced better
-designs (<a href="https://en.wikipedia.org/wiki/Composition_over_inheritance">Wikipedia:
-Composition over inheritance</a>).</p>
-<h3 id="the-pattern">2.3 The Pattern</h3>
-<p>Universal models designed top-down consistently lose to specialized
-models that emerge from practice. This is not a new observation. The
-question is whether C++ async is repeating it.</p>
+<h2 id="the-tower-of-abstraction">2. The Tower of Abstraction</h2>
+<p>Every major programming language standardized an async foundation. In
+some cases this was a full I/O model in the standard library. In others
+it was a narrow composability trait that third-party runtimes build on.
+Either way, the standardized foundation enabled tall towers of
+abstraction. The foundation came first. The frameworks followed.</p>
+<p><strong>Python</strong> standardized <code>asyncio</code> in Python
+3.4 (2014) via <a href="https://peps.python.org/pep-3156/">PEP 3156</a>,
+providing both the async model and I/O integration in the standard
+library. The ecosystem built upward. <a href="https://github.com/django/django">Django</a> (86.7k GitHub stars),
+the web framework “for perfectionists with deadlines,” sits atop this
+foundation.</p>
+<p><strong>JavaScript</strong> standardized <code>Promise</code> in
+ES2015 (June 2015) and <code>async</code>/<code>await</code> in ES2017
+(<a href="https://tc39.es/proposal-async-await/">TC39 proposal</a>). The
+language standard defines the composability primitive; the I/O runtime
+comes from the host environment (Node.js, browsers, Deno). Because every
+runtime implements the same <code>Promise</code> contract, libraries
+like <a href="https://github.com/expressjs/express">Express.js</a>
+(68.7k stars) and <a href="https://github.com/vercel/next.js">Next.js</a> (137.6k stars)
+compose across all of them.</p>
+<p><strong>Go</strong> shipped goroutines, channels, and
+<code>net/http</code> in the standard library from day one (2009). The
+<code>net/http</code> package is imported by <a href="https://pkg.go.dev/net/http">1,705,800 known packages</a>. The
+entire Go microservices ecosystem is built on this foundation.</p>
+<p><strong>Rust</strong> stabilized
+<code>async</code>/<code>await</code> in Rust 1.39 (November 2019; <a href="https://blog.rust-lang.org/2019/11/07/Async-await-stable/">Rust
+blog announcement</a>) and standardized the <a href="https://doc.rust-lang.org/std/future/trait.Future.html"><code>Future</code></a>
+trait in <code>std</code>. The I/O runtime is not in the standard
+library; <a href="https://github.com/tokio-rs/tokio">Tokio</a> (31k
+stars) fills that role. But because every runtime implements the same
+<code>Future</code> trait, libraries like <a href="https://github.com/hyperium/hyper">hyper</a> and <a href="https://github.com/tokio-rs/axum">Axum</a> (24.9k stars) are
+runtime-agnostic. Rust standardized the narrow composability contract,
+and the ecosystem built on it.</p>
+<p><strong>Java</strong> has had <code>java.net</code> in the standard
+library since JDK 1.0 (1996). The ecosystem built upward. <a href="https://github.com/spring-projects/spring-boot">Spring Boot</a>
+(79.9k stars) sits atop this foundation.</p>
+<p><strong>C#</strong> shipped <code>async</code>/<code>await</code> and
+the <code>Task</code> type in C# 5.0 (2012; <a href="https://dotnetcurry.com/csharp/869/async-await-csharp-dotnet">overview</a>),
+with a built-in thread pool and I/O completion in the standard library.
+The ecosystem built upward. <a href="https://github.com/dotnet/aspnetcore">ASP.NET Core</a> (37.7k
+stars) sits atop this foundation.</p>
+<p>In every case, standardization of an async foundation, whether a full
+I/O model or a narrow composability trait, enabled the ecosystem to
+build upward. The frameworks came after the foundation. The combined
+GitHub stars of these higher-level frameworks exceed 500,000.</p>
+<p><strong>C++</strong> added coroutines in C++20 but standardized
+neither an async I/O model nor a composability trait for async
+operations. The language machinery is there. The foundation is not. C++
+bottoms out at <a href="https://github.com/boostorg/asio">Boost.Asio</a>
+(1.5k stars, third party, no standard status), or raw POSIX/Winsock.
+There is no Django, no Express, no Spring Boot of C++. Not because C++
+programmers are less capable, but because there is no standard
+foundation to build on.</p>
 <hr />
-<h2 id="universal-models-in-c">3. Universal Models in C++</h2>
-<h3 id="the-grand-unified-model-vote">3.1 The “Grand Unified Model”
-Vote</h3>
-<p>On 2021-09-28, SG1 polled:</p>
-<blockquote>
-<p>“We believe we need one grand unified model for asynchronous
-execution in the C++ Standard Library, that covers structured
-concurrency, event based programming, active patterns, etc.”</p>
-</blockquote>
-<p>The result was <strong>no consensus</strong>: 4 SF, 9 WF, 5 N, 5 WA,
-1 SA. <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2453r0.html">P2453R0</a>
-documents this poll and its interpretation. The committee did not
-achieve consensus that a universal model was even needed. Yet the
-direction proceeded as though it had.</p>
-<p>This is worth pausing on. The foundational premise of the current
-direction did not achieve consensus among the people voting on it.</p>
-<h3 id="ranges">3.2 Ranges</h3>
-<p>Ranges are the most recent precedent for a universal abstraction in
-C++. They were positioned as the universal iteration and algorithm
-model. Adoption tells a more nuanced story.</p>
-<p>Google bans <code>&lt;ranges&gt;</code> from most of its codebase.
-Daisy Hollman (then at Google) explained at <a href="https://cppcon2024.sched.com/event/1gZgc/why-google-doesnt-allow-ranges-in-our-codebase">CppCon
-2024</a> that ranges are “perhaps the largest and most ambitious single
-feature ever added to the C++ standard library” but “it’s unreasonable
-to expect that those trade-offs will result in the same cost-benefit
-ratio in every context.”</p>
-<p>Compile-time overhead is substantial. Range-V3 headers compile in
-3.44 seconds versus 0.44 seconds for STL <code>&lt;algorithm&gt;</code>,
-roughly an 8x slowdown (<a href="https://github.com/tcbrindle/NanoRange/wiki/Compile-times">NanoRange
-wiki: Compile times</a>). Deeply nested range adapters exhibit a “cubic
-stack blowup” in template instantiation (<a href="https://news.ycombinator.com/item?id=40317350">Hacker News
-discussion</a>). Daniel Lemire’s analysis suggests that <a href="https://lemire.me/blog/2025/10/05/stdranges-may-not-deliver-the-performance-that-you-expect/">“std::ranges
-may not deliver the performance that you expect”</a> (2025).</p>
-<p>Ranges brought real value to the language. But the pattern of a
-universal abstraction that proved too costly for the largest codebases
-is worth noting as precedent.</p>
-<h3 id="ietf-taps">3.3 IETF TAPS</h3>
-<p>The IETF Transport Services (TAPS) initiative represents a top-down
-universality attempt for transport protocols. The working group was
-chartered in 2014. After a decade, the core documents remain
-Internet-Drafts. The <a href="https://datatracker.ietf.org/wg/taps/about/">TAPS charter page</a>
-notes:</p>
-<blockquote>
-<p>“TAPS has delivered all the deliverables it was chartered for… With a
-hope that TAPS will be deployed gradually.”</p>
-</blockquote>
-<p>After a decade of work, deployment remains aspirational.</p>
-<p>One proprietary implementation exists: Apple’s Network.framework
-(2018). <a href="https://wg21.link/p3482">P3482R1</a> acknowledges:
-“Unfortunately, at present, Apple’s Network Framework is the only such
-implementation.” One open-source implementation, NEAT (EU Horizon 2020
-project), was active from 2015 to 2018 and <a href="https://www.neat-project.org/">abandoned when EU funding
-ended</a>.</p>
-<p><a href="https://wg21.link/p3482">P3482</a> (Rodgers &amp; Kühl)
-proposes basing C++ networking on TAPS. The pattern is familiar:
-abstract away protocol selection entirely, let the system choose. But
-web servers need TCP. DNS needs UDP. The use cases dictate the
-protocol.</p>
-<p>TAPS contains useful analysis of transport protocol capabilities. But
-as a foundation for C++ networking, it follows the same top-down
-universality pattern that OSI exemplified.</p>
-<h3 id="the-networking-ts-schism">3.4 The Networking TS Schism</h3>
-<p>The Networking TS was really two things bundled together: an
-execution model (io_context, completion handlers, executors) and
-portable wrappers for I/O objects (sockets, timers, etc.). The
-controversy was never about the sockets. It was entirely about the
-execution model.</p>
-<p>The polls in <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2453r0.html">P2453R0</a>
-make this clear:</p>
-<ul>
-<li><p><strong>Poll 1</strong> asked whether the Networking TS/Asio
-async model is “a good basis for most asynchronous use cases, including
-networking, parallelism, and GPUs.” Result: weak consensus against. But
-the interpretation noted: “It doesn’t mean that the Networking TS async
-model isn’t a good fit for networking. There were many comments to the
-contrary.”</p></li>
-<li><p><strong>Poll 3</strong> asked to “Stop pursuing the Networking
-TS/Asio design as the C++ Standard Library’s answer for networking.”
-Result: <strong>no consensus</strong> (13 SF, 13 WF, 8 N, 6 WA, 10 SA).
-The Networking TS is not dead.</p></li>
-<li><p><strong>Poll 5</strong> asked whether it is “acceptable to ship
-socket-based networking… that does not support secure sockets.” Result:
-<strong>no consensus</strong>. No objection to the sockets themselves,
-only to shipping without TLS.</p></li>
-</ul>
-<p>Nobody objected to portable socket wrappers. The schism was entirely
-about which execution model async operations should use. The I/O objects
-were uncontroversial because they did not claim universality.</p>
-<h3 id="stdexecution-p2300">3.5 std::execution (P2300)</h3>
-<p><code>std::execution</code> is the central case study. It proposes
-sender/receiver as the universal async model for C++. The authors are
-talented, the structured concurrency ideas have real value, and the work
-represents years of effort. The question is whether the evidence
-supports declaring it universal.</p>
-<h4 id="gpu-oriented-design">3.5.1 GPU-Oriented Design</h4>
-<p>The <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2300r10.html">P2300R10</a>
-author list draws predominantly from GPU and large-scale compute
-companies. The reference implementation, <code>stdexec</code>, is hosted
-at <a href="https://nvidia.github.io/stdexec/">nvidia.github.io</a>. No
-author of a shipping, production-deployed networking library appears on
-the paper. This matters because the design machinery reflects the
-domains its authors work in:</p>
-<ul>
-<li>P2300R10 §1.1 frames the motivation around “GPUs in the world’s
-fastest supercomputer.”</li>
-<li>P2300R10 §1.2 prioritizes “the diversity of execution resources and
-execution agents, because not all execution agents are created
-equal.”</li>
-<li>The second end-user example (§1.3.2) is “Asynchronous inclusive
-scan,” a classic GPU parallel primitive using <code>bulk</code> to spawn
-data-parallel execution agents. This is not an I/O pattern.</li>
-<li><code>bulk</code> (§4.20.9) spawns N execution agents for
-data-parallel work. No networking analog exists.</li>
-<li><code>continues_on</code> / transfer moves work between execution
-contexts, a CPU-to-GPU pattern. Networking does not transfer between
-hardware backends.</li>
-<li>Completion domains dispatch algorithms based on execution resource,
-so GPU backends can substitute custom implementations. TCP reads have
-one implementation per platform, not multiple hardware backends.</li>
-</ul>
-<p>The entire sender algorithm customization lineage (<a href="https://wg21.link/p2999r3">P2999R3</a>, <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3303r1.html">P3303R1</a>,
-<a href="https://wg21.link/p3826">P3826</a>) is about domain-based
-algorithm dispatch. These papers contain zero mentions of networking,
-sockets, or I/O.</p>
-<p>Among the 10 companion papers in flight (see §3.5.5), the authors
-come from NVIDIA, Intel, Meta, or are working on
-<code>std::execution</code> machinery itself. When a framework claims
-universality across domains, the absence of I/O and networking domain
-experts from its design process is worth noting.</p>
-<h4 id="networking-deferred">3.5.2 Networking Deferred</h4>
-<p>The official stdexec documentation states under “Standardization
-Status (as of 2025)”:</p>
-<blockquote>
-<p>“Interop with networking is being explored for C++29.”</p>
-<p><a href="https://nvidia.github.io/stdexec/">nvidia.github.io/stdexec</a></p>
-</blockquote>
-<p>The framework ships in C++26 without the use case that started the
-entire executor discussion a decade ago.</p>
-<p>stdexec’s only I/O example (<a href="https://github.com/NVIDIA/stdexec/blob/main/examples/io_uring.cpp">io_uring.cpp</a>)
-contains zero socket operations, zero reads, zero writes. It
-demonstrates only timers (<code>schedule_after</code>,
-<code>schedule_at</code>). When a user asked about file reading, the
-maintainer directed them to a third-party repo (<a href="https://github.com/NVIDIA/stdexec/issues/1062">NVIDIA/stdexec#1062</a>).
-The framework has never been proven for I/O in practice.</p>
-<h4 id="type-erasure-and-abi">3.5.3 Type Erasure and ABI</h4>
-<p><a href="https://github.com/facebookexperimental/libunifex/issues/244">libunifex
-issue #244</a> (still open) shows a user trying to implement networking
-with SSL sockets who hits a fundamental type-erasure wall. Eric Niebler
-responds:</p>
-<blockquote>
-<p>“There currently isn’t a generalization of
-<code>any_sender_of&lt;&gt;</code> than can handle more than
-<code>std::exception_ptr</code>.”</p>
-</blockquote>
-<p>Lewis Baker proposes a fix:</p>
-<blockquote>
-<p>“Longer term, it probably makes sense to allow the any_sender_of type
-to be parameterisable with both a list of set_value overloads and a list
-of set_error overloads.”</p>
-</blockquote>
-<p>The fix was never implemented. C++26 <code>std::execution</code>
-provides no type-erased sender at all. This matters for three
-reasons.</p>
-<p><strong>ABI stability.</strong> WG21 has maintained ABI stability
-across C++14, C++17, and C++20 (<a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2020/p1863r1.pdf">P1863R1</a>).
-Breaking ABI costs the ecosystem “engineer-millennia.” Templates and
-header-only libraries create ABI fragility because “template
-implementations must appear in headers, forcing recompilation into every
-translation unit that uses them” (<a href="https://blogs.gentoo.org/mgorny/2012/08/20/the-impact-of-cxx-templates-on-library-abi/">Gentoo
-C++ ABI analysis</a>). Type-erased interfaces provide stable ABI
-boundaries: implementation changes stay behind the erasure wall, no
-recompilation needed. A framework that structurally resists type erasure
-maximizes ABI risk. A design that embraces type erasure, like coroutine
-handles which are inherently type-erased, would give the committee what
-it wants: async capabilities with ABI stability. This is a design that
-solves the committee’s own stated problem.</p>
-<p><strong>Error model mismatch.</strong> Networking code vastly prefers
-<code>error_code</code> over exceptions. Boost.Asio’s own documentation
-explains why EOF is an error_code: “An EOF error may be used to
-distinguish the end of a stream from a successful read of size 0” (<a href="https://www.boost.org/doc/libs/release/doc/html/boost_asio/design/eof.html">Boost.Asio
-Design</a>). Conditions like cancellation and EOF are alternate success
-states, not catastrophic failures. In <a href="https://github.com/facebookexperimental/libunifex/issues/244">libunifex
-#244</a>, Niebler confirms <code>any_sender_of</code> is hard-coded to
-<code>exception_ptr</code> while io_uring propagates
-<code>error_code</code>. The framework that claims universality produces
-a type-erased form that is itself not universal.</p>
-<p><strong>Compile times.</strong> <a href="https://github.com/chriskohlhoff/asio/issues/1100">Asio issue
-#1100</a> is a feature request for type-erased handlers. The author
-states: “Some of us still care about compile times and being able to
-apply the Pimpl idiom. This is not possible when our libraries are
-forced to be header-only because of Asio.” Kohlhoff responded by
-implementing <code>any_completion_handler</code>. A framework that
-structurally resists type erasure forces the template-heavy model on
-every user.</p>
-<h4 id="design-immaturity">3.5.4 Design Immaturity</h4>
-<p><a href="https://wg21.link/p4007">D4007R0</a> (“std::execution Needs
-More Time”) documents a fundamental timing gap between the backward-flow
-context model and coroutine frame allocation. Eric Niebler, in <a href="https://wg21.link/p3826">P3826R3</a> (2026-01-05), characterizes
-part of the design in his own words:</p>
-<blockquote>
-<p>“The receiver is not known during early customization. Therefore,
-early customization is irreparably broken.”</p>
-</blockquote>
-<p>When the lead author of a framework describes part of its design as
-“irreparably broken,” that is evidence worth weighing.</p>
-<h4 id="papers-still-in-flight">3.5.5 Papers Still in Flight</h4>
-<p>At least 10 companion papers are actively fixing, extending, and
-patching <code>std::execution</code> in the 2025-2026 mailings. Each
-reveals design immaturity, GPU/parallel focus, or both:</p>
-<ul>
-<li><p><a href="https://wg21.link/p2079">P2079</a> “System execution
-context”: A global thread pool for parallel forward progress. Explicitly
-GPU/parallel: “System scheduler works best with CPU-intensive
-workloads.” I/O is deferred as future work.</p></li>
-<li><p><a href="https://wg21.link/p3164">P3164</a> “Improving
-diagnostics for sender expressions” (Niebler): Fixes a design flaw where
-type errors in sender expressions are diagnosed too late.</p></li>
-<li><p><a href="https://wg21.link/p3373">P3373</a> “Of Operation States
-and Their Lifetimes” (Leahy): Reveals that basic lifetime semantics were
-not properly designed. The paper observes: “the analogue thereof for
-asynchronous code under the framework of std::execution moves in only
-one direction (i.e. such storage is only ever ‘allocated’).”</p></li>
-<li><p><a href="https://wg21.link/p3388">P3388</a> “When Do You Know
-connect Doesn’t Throw?” (Leahy): The framework cannot answer a basic
-question: will <code>connect</code> throw? LEWG voted unanimously (SF:8
-F:7 N:0 A:0 SA:0) that this is a real deficiency.</p></li>
-<li><p><a href="https://wg21.link/p3425">P3425</a> “Reducing
-operation-state sizes” (Baker): Operation states are bloated. Filed as a
-national body comment against C++26. The Hagenberg review noted no
-deployment experience. Real-world frameworks like HPX and pika already
-solved this problem. <code>std::execution</code> regressed relative to
-existing practice.</p></li>
-<li><p><a href="https://wg21.link/p3481">P3481</a>
-“std::execution::bulk() issues”: Explicitly GPU-focused: “For GPUs is
-important to have a version of <code>bulk</code> that ensures one
-execution agent per iteration.” Fundamental API gaps remain: “the
-following are unclear: Can <code>bulk</code> invoke the given functor
-concurrently? Can <code>bulk</code> create decayed copies?”</p></li>
-<li><p><a href="https://wg21.link/p3552">P3552</a> “Add a Coroutine Task
-Type” (Kühl, Nadolski): <code>std::execution</code> shipped in C++26
-without a coroutine task type, the primary way users are expected to
-interact with it. The paper lists 12 unsolved design
-objectives.</p></li>
-<li><p><a href="https://wg21.link/p3557">P3557</a> “High-Quality Sender
-Diagnostics” (Niebler): Sender misuse produces “megabytes of
-incomprehensible diagnostics.” The paper “exposed several bugs in the
-Working Draft for C++26.”</p></li>
-<li><p><a href="https://wg21.link/p3564">P3564</a> “Make concurrent
-forward progress usable in bulk” (Hoemmen, NVIDIA): Explicitly GPU:
-“CUDA distinguishes ordinary bulk execution (‘device kernel’) launch…
-from so-called ‘cooperative’ bulk execution launch.” Forward progress
-guarantees are fundamentally broken.</p></li>
-<li><p><a href="https://wg21.link/p3826">P3826</a> “Fix Sender Algorithm
-Customization” (Niebler): Predecessor papers <a href="https://wg21.link/p2999r3">P2999R3</a> and <a href="https://wg21.link/p3303r1">P3303R1</a> address domain-based
-algorithm dispatch for GPU backends.</p></li>
-</ul>
-<p>Of these 10 papers, zero are about networking. At least four are
-explicitly GPU/parallel focused (P2079, P3481, P3564, P3826). The rest
-fix fundamental design deficiencies: lifetimes, exception safety,
-diagnostics, memory bloat, and a missing task type. A framework with
-this many open design questions is not ready to be declared
-universal.</p>
-<h4 id="the-design-space-remains-open">3.5.6 The Design Space Remains
-Open</h4>
-<p><a href="https://wg21.link/p4003">D4003</a> (“IoAwaitables: A
-Coroutines-Only Execution Model”) demonstrates an alternative execution
-model purpose-built for I/O that diverges significantly from
-<code>std::execution</code>. Its existence proves the design space has
-not converged.</p>
-<p>If WG21 commits to one execution model as universal, it may close off
-the design space for alternatives like IoAwaitables, <a href="https://github.com/tzcnt/TooManyCooks">TooManyCooks</a> (a C++20
-coroutine runtime optimized for raw performance), and Asio’s completion
-token model. The history of C++ suggests that enabling multiple
-approaches, and letting the ecosystem converge naturally, has served the
-language better than mandating convergence from above.</p>
+<h2 id="the-coordination-problem">3. The Coordination Problem</h2>
+<p>The C++ standard exists to solve coordination problems. <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2000r4.pdf">P2000R4</a>
+(“Direction for ISO C++”) was created specifically to address concerns
+about C++ “losing coherency due to proposals based on differing and
+sometimes mutually contradictory design philosophies.” The standard
+provides a shared foundation so that independently developed libraries
+can interoperate.</p>
+<p>The async I/O domain is the textbook case where that foundation is
+missing.</p>
+<p>Without a standard async model for I/O, every library invents its
+own. <a href="https://www.boost.org/doc/libs/release/doc/html/boost_asio.html">Boost.Asio</a>
+uses completion tokens. Meta’s <a href="https://github.com/facebook/folly/blob/main/folly/experimental/coro/README.md">folly::coro</a>
+is “a developer-friendly asynchronous C++ framework based on the
+Coroutines TS.” <a href="https://doc.qt.io/qt-6/signalsandslots.html">Qt</a> uses signals
+and slots, described as “Qt’s central communication mechanism between
+objects, serving as an alternative to callbacks.” Beyond these, there
+are custom callback systems, promise/future chains, and ad-hoc event
+loops in countless codebases.</p>
+<p>Algorithms written for one model cannot compose with another. An HTTP
+library built on Asio completion tokens cannot be used by code built on
+folly::coro. A TLS wrapper using Qt’s event loop cannot plug into <a href="https://www.boost.org/doc/libs/release/libs/beast/">Boost.Beast</a>.
+Each library is an island.</p>
+<p>This fragmentation is the direct cause of the shallow abstraction
+tower. Nobody builds Django-scale frameworks in C++ because the
+foundation is not agreed upon.</p>
+<h3 id="the-no-dependencies-culture">The “No Dependencies” Culture</h3>
+<p>C++ libraries routinely advertise “no external dependencies” or
+“header-only” as a selling point. <a href="https://github.com/nlohmann/json">nlohmann/json</a> (48.8k stars)
+advertises “no external dependencies beyond a C++11 compliant compiler.”
+<a href="https://github.com/yhirose/cpp-httplib">cpp-httplib</a> (16k
+stars) bills itself as “a C++ header-only HTTP/HTTPS server and client
+library” with no dependencies. <a href="https://github.com/fmtlib/fmt">fmt</a> (23.2k stars) highlights
+“no external dependencies.”</p>
+<p>This cultural norm is a symptom of the missing foundation. In a
+healthy ecosystem, depending on shared infrastructure is normal. In
+Python, depending on <code>asyncio</code> is not a liability. In C++,
+depending on Boost.Asio is treated as a burden.</p>
+<p>John Lakos’s <em>Large-Scale C++ Software Design</em> (<a href="https://informit.com/store/large-scale-c-plus-plus-software-design-9780201633627">Addison-Wesley,
+1996</a>) established that well-structured systems with clear
+hierarchical dependencies are “fundamentally easier and more economical
+to maintain, test, and reuse.” The “no dependencies” instinct inverts
+this principle. It treats isolation as a virtue when shared foundations
+would be more productive.</p>
+<p>The absence of a standard async model makes this dysfunction worse.
+Since no foundation exists, every library must reinvent it or avoid
+async entirely. cpp-httplib, the most popular C++ HTTP library listed
+above, warns in its own README: “This library uses ‘blocking’ socket
+I/O. If you are looking for a library with ‘non-blocking’ socket I/O,
+this is not the one that you want.” A 16k-star HTTP library cannot offer
+async because there is no standard async foundation to build on.</p>
 <hr />
-<h2 id="narrow-abstractions-win">4. Narrow Abstractions Win</h2>
-<p>C++ has a strong track record with universal abstractions. But the
-ones that succeed share a distinctive property: they are narrow.</p>
-<h3 id="where-universality-succeeded-in-c">4.1 Where Universality
-Succeeded in C++</h3>
-<p><strong>STL Iterators.</strong> Stepanov’s traversal protocol works
-across every container type. His key insight: “One seldom needs to know
-the exact type of data on which an algorithm works since most algorithms
-work on many similar types” (<a href="https://stepanovpapers.com/Stepanov-The_Standard_Template_Library-1994.pdf">Stepanov,
-“The Standard Template Library,” 1994</a>). Iterators capture one
-essential property, traversal, and leave everything else to the user.
-The same <code>std::sort</code> works on arrays, vectors, and deques. It
-works because the abstraction is narrow.</p>
-<p><strong>RAII.</strong> Constructor acquires, destructor releases.
-This pattern works across every resource type: memory, files, sockets,
-locks, GPU handles. Bjarne Stroustrup introduced it in the 1980s as a
-way to make resource management exception-safe (<a href="https://en.cppreference.com/w/cpp/language/raii">cppreference:
-RAII</a>). It emerged from practice, not from committee design. It is
-minimal, stable, and universal across every C++ domain. It works because
-the abstraction is narrow.</p>
-<p><strong>Allocators.</strong> The allocator model lets every standard
-container work with any memory strategy: pool allocators, arena
-allocators, <code>std::pmr</code> resources, or the default heap.
-Containers become composable building blocks regardless of the memory
-strategy underneath (<a href="https://en.cppreference.com/w/cpp/named_req/Allocator">cppreference:
-Allocator</a>). It works because the abstraction is narrow.</p>
-<p>Iterators abstract over traversal. Allocators abstract over memory
-strategy. RAII abstracts over resource lifetime. Each captures one
-essential property and leaves everything else to the user.</p>
-<p><code>std::execution</code> tries to abstract over scheduling,
-context propagation, error handling, cancellation, algorithm dispatch,
-and hardware backend selection all at once. That is not one essential
+<h2 id="how-we-got-here">4. How We Got Here</h2>
+<p>In 2014, the C++ committee decided to “adopt existing practice” for
+networking, basing a proposal on <a href="https://www.boost.org/doc/libs/release/doc/html/boost_asio.html">Boost.Asio</a>
+(<a href="https://wg21.link/p3185r0">P3185R0</a> documents this
+history). Chris Kohlhoff published a <a href="https://github.com/chriskohlhoff/networking-ts-impl">reference
+implementation of the Networking TS</a>.</p>
+<p>By 2021, the executor debate had consumed the effort. On 2021-09-28,
+SG1 polled whether “one grand unified model” for asynchronous execution
+was needed. The result was no consensus: 4 SF, 9 WF, 5 N, 5 WA, 1 SA. <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2453r0.html">P2453R0</a>
+documents these polls. Nobody objected to portable socket wrappers. The
+schism was entirely about the execution model.</p>
+<p>The committee chose <a href="https://wg21.link/p2300">P2300</a>
+(<code>std::execution</code>), a sender/receiver framework. It is now in
+the C++26 working draft.</p>
+<p>C++26 is about to ship <code>std::execution</code>, an asynchronous
+execution model. The committee decided it needed a standard async
+framework. That instinct was correct. But the framework that landed was
+designed for GPU and parallel computing (section 5.1 presents the
+evidence). The <a href="https://nvidia.github.io/stdexec/">stdexec
+documentation</a> confirms: “Interop with networking is being explored
+for C++29.” Networking is deferred to C++29 at the earliest.</p>
+<p>This is not blame. The Networking TS was proposed in 2014. It is now
+2026. The C++ standard still cannot connect to the internet. The domain
+is genuinely difficult. The instinct to find a universal model is
+natural. But the cost of the delay is real. The committee recognized the
+need for a standard async model, and that recognition was right. The
+question is whether the model that landed serves the most important use
+case.</p>
+<hr />
+<h2 id="three-tests-for-a-standard-async-model">5. Three Tests for a
+Standard Async Model</h2>
+<p>If C++ is going to standardize an asynchronous execution model, it
+should meet three criteria. This section proposes those criteria and
+evaluates <code>std::execution</code> against each.</p>
+<h3 id="it-should-put-networking-first">5.1 It Should Put Networking
+First</h3>
+<p>Networking is not just another feature. It is the infrastructure
+through which modern institutions coordinate. Samo Burja’s <em>Great
+Founder Theory</em> (<a href="https://www.samoburja.com/gft/">samoburja.com/gft</a>) describes
+“social technology” as a coordination mechanism that can be documented
+and taught. The internet is the most consequential social technology of
+our era. Every other major programming language standardized an async
+foundation for networking, whether a full I/O model or a narrow
+composability trait (section 2). None of them ship a sender/receiver
+execution framework. C++ ships neither. When a language cannot
+participate in building the coordination infrastructure that
+civilization depends on, the gap is not merely technical. It is
+strategic.</p>
+<p>GPU users already have CUDA, which requires NVIDIA’s non-standard
+compiler. The <code>__device__</code>, <code>__global__</code>, and
+<code>&lt;&lt;&lt;&gt;&gt;&gt;</code> syntax are not valid C++ (<a href="https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html">CUDA
+C/C++ Language Extensions</a>). Adding <code>std::execution</code> to
+the standard provides no benefit to GPU users that <a href="https://vcpkg.link/ports/stdexec">stdexec on vcpkg</a> does not
+already provide.</p>
+<p><code>std::execution</code>’s design priorities explicitly target GPU
+computing. <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2300r10.html">P2300R10</a>
+section 1.1 frames the motivation around “GPUs in the world’s fastest
+supercomputer.” Section 1.3.2’s second end-user example is “Asynchronous
+inclusive scan,” a GPU parallel primitive using <code>bulk</code>. The
+<code>bulk</code> algorithm has no networking analog.</p>
+<p><strong>Networking creates towers. GPU does not.</strong> The tower
+of abstraction argument only works if standardization actually enables
+higher-level libraries to proliferate. For networking, the evidence is
+overwhelming: sockets lead to HTTP, which leads to REST, which leads to
+web frameworks, which lead to full-stack applications. Django, Express,
+Spring Boot, Axum (500k+ combined GitHub stars) all sit atop
+standardized async I/O foundations. Each layer builds on the one
+below.</p>
+<p>The GPU ecosystem is wide but not tall. CUDA leads to cuDNN, cuBLAS,
+cuFFT, OptiX, and custom kernels. Each library uses the foundation
+directly. There is no stacking. There is no “Django of GPU.” GPU
+workloads are domain-specific: custom kernels for physics simulations,
+ML training loops, rendering pipelines. The use cases do not compose
+upward the way networking use cases do.</p>
+<p>Standardizing <code>std::execution</code> for GPU would not produce
+the ecosystem benefit that standardizing an async I/O model for
+networking would. The return on investment is asymmetric: networking
+standardization enables exponential ecosystem growth (towers), while GPU
+standardization enables linear growth (more libraries at the same
+level).</p>
+<h3 id="it-should-be-built-on-c20-coroutines">5.2 It Should Be Built on
+C++20 Coroutines</h3>
+<p>C++20 gave C++ a language-level mechanism for writing async code that
+looks like sync code. The <a href="https://wg21.link/p0912r5">C++20
+coroutines proposal</a> (P0912R5) was a deliberate language design
+choice. <code>co_await</code>, <code>co_return</code>, and
+<code>co_yield</code> are keywords in the language. A standard async I/O
+framework should build on this foundation, not work around it.</p>
+<p><code>std::execution</code> shipped in C++26 without a coroutine task
+type. <a href="https://wg21.link/p3552">P3552</a> (“Add a Coroutine Task
+Type”) is still in flight, listing 12 unsolved design objectives. The
+primary way users are expected to write async code was not included in
+the framework.</p>
+<p>There is a deeper problem. <a href="https://wg21.link/p4007">D4007R0</a> (“std::execution Needs More
+Time”) documents that <code>std::execution</code>’s backward-flow
+context model provides the allocator after the coroutine frame is
+already allocated. Eric Niebler characterizes the issue in <a href="https://wg21.link/p3826">P3826R3</a>: “The receiver is not known
+during early customization. Therefore, early customization is
+irreparably broken.” This is a fundamental incompatibility with
+coroutine-based I/O, where the allocator must be known at frame
+allocation time.</p>
+<p>Alternative models are coroutines-first and do not have this problem.
+<a href="https://wg21.link/p4003">D4003</a> (IoAwaitables) flows context
+forward through coroutine chains, with the allocator known at the launch
+site. <a href="https://github.com/tzcnt/TooManyCooks">TooManyCooks</a>
+is a C++20 coroutine runtime built around <code>tmc::task</code> as the
+core type. <a href="https://github.com/cppalliance/capy">Capy</a> is a
+coroutine-first execution model with forward-flowing context. Each of
+these designs treats coroutines as the primary user interface for async
+code, not as an afterthought bolted onto a different execution
+model.</p>
+<h3 id="it-should-be-narrow">5.3 It Should Be Narrow</h3>
+<p>Successful C++ abstractions capture one essential property. Iterators
+abstract over traversal: “One seldom needs to know the exact type of
+data on which an algorithm works since most algorithms work on many
+similar types” (<a href="https://stepanovpapers.com/Stepanov-The_Standard_Template_Library-1994.pdf">Stepanov,
+“The Standard Template Library,” 1994</a>). Allocators abstract over
+memory strategy (<a href="https://en.cppreference.com/w/cpp/named_req/Allocator">cppreference:
+Allocator</a>). RAII abstracts over resource lifetime (<a href="https://en.cppreference.com/w/cpp/language/raii">cppreference:
+RAII</a>). Each leaves everything else to the user.</p>
+<p><code>std::execution</code> abstracts over scheduling, context
+propagation, error handling, cancellation, algorithm dispatch, and
+hardware backend selection simultaneously. <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2300r10.html">P2300R10</a>
+section 1.2 lists priorities including “diversity of execution
+resources,” “cancellation,” “error propagation,” “where things execute,”
+and “manage lifetimes asynchronously.” That is not one essential
 property. That is six.</p>
-<h3 id="should-c-choose-tradeoffs-for-its-users">4.2 Should C++ Choose
-Tradeoffs for Its Users?</h3>
-<p>C++ has historically given programmers control over their tradeoffs.
-You don’t pay for what you don’t use. You choose the abstractions
-appropriate to your domain. The narrow abstractions above embody this
-principle: iterators don’t choose your container, allocators don’t
-choose your memory strategy, RAII doesn’t choose your resource.</p>
-<p>A mandated universal execution model would represent a departure from
-this tradition. It would say: we have decided which tradeoffs are right
-for async, across all domains, for all users.</p>
-<p>Perhaps that is the right call. But consider the evidence.</p>
-<h3 id="multiple-valid-execution-models-in-the-wild">4.3 Multiple Valid
-Execution Models in the Wild</h3>
-<p>In async, no similarly narrow universal abstraction has emerged.
-Instead, multiple valid execution models coexist, each optimized for
-different tradeoffs:</p>
-<p><strong><a href="https://github.com/tzcnt/TooManyCooks">TooManyCooks</a></strong>
-is a C++20 coroutine runtime with its own execution model (work-stealing
-thread pool, <code>tmc::task</code>, <code>tmc::spawn_tuple</code>),
-optimized for raw coroutine throughput via continuation stealing. It
-does not use <code>std::execution</code>. It is equally valid for its
-domain.</p>
-<p><strong><a href="https://www.boost.org/doc/libs/release/doc/html/boost_asio.html">Boost.Asio</a>
-/ Networking TS</strong> has its own execution model, optimized for I/O
-completion with platform-native proactors (IOCP on Windows, epoll on
-Linux, kqueue on BSD). It supports multiple continuation styles
-(callbacks, futures, stackful coroutines, C++20 coroutines) and
-user-defined ones through completion tokens. Kohlhoff’s <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf">N3747</a>
-(“A Universal Model for Asynchronous Operations,” 2013) showed how a
-single initiating function can adapt to caller-chosen completion styles.
-This is a different kind of universality, proven across two decades of
-production use.</p>
-<p><strong><a href="https://github.com/cppalliance/capy">Capy</a></strong> has its own
-execution model, optimized for coroutine-first ergonomics with
-forward-flowing context (executor, allocator, stop token propagated from
-caller to callee). <a href="https://github.com/cppalliance/corosio">Corosio</a> uses it. Even
-within the same domain (async I/O), multiple valid execution models
-coexist because they optimize for different things.</p>
-<p><strong><a href="https://github.com/grpc/grpc">gRPC</a></strong>,
-44.3k GitHub stars. Google’s production RPC framework, written primarily
-in C++. It has its own async model with both completion-queue-based and
-<a href="https://grpc.io/docs/languages/cpp/callback">callback-based</a>
-APIs. It does not use <code>std::execution</code>.</p>
-<p><strong><a href="https://github.com/libuv/libuv">libuv</a></strong>,
-26.5k GitHub stars. The event-driven async I/O library that powers
-Node.js. It provides its own event loop backed by epoll, kqueue, IOCP,
-and event ports, with cross-platform support for TCP/UDP sockets, DNS,
-file I/O, IPC, and child processes (<a href="https://docs.libuv.org/en/stable">libuv docs</a>). It does not use
-<code>std::execution</code>.</p>
-<p><strong><a href="https://github.com/scylladb/seastar">Seastar</a></strong>, 9.1k
-GitHub stars. The framework behind ScyllaDB. Seastar uses a
-shared-nothing design that “shards all requests onto individual cores”
-with “explicit message passing rather than shared memory between
-threads” (<a href="https://www.seastar.io/">seastar.io</a>). Its
-futures-and-promises execution model is fundamentally incompatible with
-sender/receiver. It does not use <code>std::execution</code>.</p>
-<p><strong><a href="https://github.com/lewissbaker/cppcoro">cppcoro</a></strong>, 3.8k
-GitHub stars. A C++ coroutine abstractions library created by Lewis
-Baker, who is a co-author of <a href="https://wg21.link/p2300">P2300</a>. It provides its own task
-types, schedulers, and async primitives. It does not use
-<code>std::execution</code>. When a co-author of the framework builds a
-separate library with a different execution model, that is evidence the
-design space has not converged.</p>
-<p>The existence of these models is not a failure to be corrected. It is
-evidence that the problem space is too rich for a single wide model to
-dominate.</p>
-<p>If the cost of mandating the wrong model is borne by every C++
-programmer for decades, this question deserves careful, unhurried
-consideration.</p>
-<hr />
-<h2 id="what-works-and-what-doesnt">5. What Works and What Doesn’t</h2>
-<p>Genuine universal models do exist. It would be intellectually
-dishonest to ignore them. But they share characteristics that
-distinguish them from the models that fail.</p>
-<p><strong>TCP/IP.</strong> David Clark (1988) describes how TCP/IP’s
-design philosophy evolved through “the repeated pattern of
-implementation and testing that occurred before the standards were set”
-(<a href="https://www.cs.princeton.edu/~jrex/teaching/spring2005/reading/clark88.pdf">Clark,
-“The Design Philosophy of the DARPA Internet Protocols”</a>). Key
-features like the datagram service and the IP/TCP layering “were not
-part of the original proposal” but emerged from iterative deployment.
-The standard formalized what had already proven successful in
-operational use.</p>
-<p><strong>IEEE 754.</strong> Before the standard, floating-point
-arithmetic was chaos. William Kahan recalls numbers that “could behave
-as non-zero in comparisons but as zeros in multiplication” (<a href="https://people.eecs.berkeley.edu/~wkahan/ieee754status/754story.html">Kahan
-interview</a>). IEEE 754 emerged from Intel’s practical need for a
-coprocessor, designed by Kahan based on decades of hands-on experience
-with IBM, Cray, and CDC systems. It codified best practices from
-existing hardware, not theoretical ideals.</p>
-<p>Both emerged from practice, not from committee-designed frameworks.
-Both were minimal and stable. Both achieved broad voluntary adoption
-across disparate domains without coercion. Both proved themselves
-through deployment before being standardized.</p>
-<p>The models that fail look different. They are wide, comprehensive,
-and designed top-down. The models that succeed alongside them look
-different too. They are narrow, specialized, and composable.</p>
-<p><strong>Unix pipes.</strong> Doug McIlroy (1978): “Make each program
-do one thing well… Expect the output of every program to become the
-input to another” (<a href="https://en.wikipedia.org/wiki/Unix_philosophy">Wikipedia: Unix
-philosophy</a>). The pipe, a byte stream, is the narrowest possible
-contract. It enabled an ecosystem of specialized tools that compose
-freely.</p>
-<p><strong>TCP/IP’s narrow waist.</strong> The Internet’s hourglass
-architecture puts a single, simple spanning layer (IP) at the center.
-“Simplicity and generality at the waist outperform richer, feature-heavy
-designs in real-world adoption and evolution” (<a href="https://en.wikipedia.org/wiki/Hourglass_model">Wikipedia:
-Hourglass model</a>). Innovation happens above and below the waist, not
-at the waist. OSI tried to make the waist wide. It failed.</p>
-<p><strong>Asio’s completion tokens.</strong> Kohlhoff’s <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf">N3747</a>
-(“A Universal Model for Asynchronous Operations,” 2013) showed how a
-single initiating function adapts to caller-chosen completion styles:
-callbacks, futures, stackful coroutines, C++20 coroutines, and
-user-defined ones. The narrow contract is the completion token. The
-model does not impose a continuation style; it lets each caller choose.
-Two decades of production use validate this approach.</p>
-<p>The pattern is consistent. Narrow contracts enable broad ecosystems.
-Wide abstractions constrain them. When universality succeeds, it is
-minimal. When it fails, it is comprehensive.</p>
-<p>If a universal model exists for async in C++, it will follow the
-practice-first pattern: broad voluntary adoption across disparate
-domains, without mandating it. If you have to mandate it, it is not
-universal. <code>std::execution</code> has not yet passed this test. If
-it does not, the alternative is not chaos. It is specialization with
-interoperation through narrow contracts, the approach that has worked
-everywhere else.</p>
-<hr />
-<h2 id="the-problem-is-already-solved">6. The Problem Is Already
-Solved</h2>
-<p>A key premise of <code>std::execution</code> is that C++ needs a
-standard framework for heterogeneous and parallel computing. But the
-ecosystem has not been waiting. The coordination problems that
-<code>std::execution</code> aims to solve are already solved by widely
-adopted, production-proven libraries.</p>
-<h3 id="gpu-and-heterogeneous-computing">6.1 GPU and Heterogeneous
-Computing</h3>
-<p><strong>NVIDIA CCCL</strong> (Thrust, CUB, libcu++), 2.1k GitHub
-stars (<a href="https://github.com/NVIDIA/cccl">GitHub</a>). Thrust is
-described as “the C++ parallel algorithms library which inspired the
-introduction of parallel algorithms to the C++ Standard Library” (<a href="https://nvidia.github.io/cccl/thrust/">NVIDIA docs</a>). It is
-included in the NVIDIA HPC SDK and CUDA Toolkit. NVIDIA is not waiting
-for <code>std::execution</code> to ship GPU parallel algorithms. They
-already ship them.</p>
-<p><strong>Kokkos</strong>, 2.4k GitHub stars (<a href="https://github.com/kokkos/kokkos">GitHub</a>). A performance
-portability layer from Sandia National Laboratories that enables
-“manycore performance portability through polymorphic memory access
-patterns” (<a href="https://kokkos.org/kokkos-core-wiki/ProgrammingGuide/Introduction.html">Kokkos
-documentation</a>). Code written with Kokkos runs on CPUs, Intel Xeon
-Phi, and GPUs without platform-specific rewrites.</p>
-<p><strong>RAJA</strong>, 560 GitHub stars (<a href="https://github.com/llnl/RAJA">GitHub</a>). Lawrence Livermore
-National Laboratory’s performance portability layer for DOE exascale
-applications. RAJA has been “proven in production with most LLNL ASC
-applications and numerous ECP applications” across NVIDIA, AMD, and
-Intel GPUs (<a href="https://computing.llnl.gov/projects/raja-managing-application-portability-next-generation-platforms">LLNL
-project page</a>).</p>
-<p><strong>OpenMP</strong> accounts for “45% of all analyzed parallel
-APIs” on GitHub, making it the “dominant parallel programming model”
-with “steady and continuous growth in popularity over the past decade”
-(<a href="https://arxiv.org/pdf/2308.08002">Quantifying OpenMP,
-2023</a>). OpenMP 6.0 (November 2024) provides full GPU offload support
-(<a href="https://openmp.org/home-news/openmp-arb-releases-openmp-6-0-for-easier-programming">OpenMP
-6.0 announcement</a>).</p>
-<h3 id="task-parallelism-and-async">6.2 Task Parallelism and Async</h3>
-<p><strong>Taskflow</strong>, 11.6k GitHub stars (<a href="https://github.com/taskflow/taskflow">GitHub</a>). “A
-General-purpose Task-parallel Programming System” that supports
-heterogeneous CPU-GPU computing and has demonstrated solving “a
-large-scale machine learning workload up to 29% faster, 1.5x less
-memory, and 1.9x higher throughput than the industrial system, oneTBB,
-on a machine of 40 CPUs and 4 GPUs” (<a href="https://arxiv.org/pdf/2004.10908">Taskflow paper</a>).</p>
-<p><strong>oneTBB</strong> (Intel), 6.5k GitHub stars (<a href="https://github.com/uxlfoundation/oneTBB">GitHub</a>). “A flexible
-performance library” for parallel computing that has been in production
-use for over 15 years (<a href="https://uxlfoundation.github.io/oneTBB/">oneTBB
-documentation</a>).</p>
-<p><strong>HPX</strong>, 2.8k GitHub stars (<a href="https://github.com/STEllAR-GROUP/hpx">GitHub</a>). “A general
-purpose C++ runtime system for parallel and distributed applications of
-any scale” that has demonstrated 96.8% parallel efficiency on 643,280
-cores (<a href="https://hpx.stellar-group.org/">HPX website</a>).</p>
-<p><strong>folly</strong> (Meta), 30.2k GitHub stars (<a href="https://github.com/facebook/folly">GitHub</a>). Meta’s production
-C++ library including <code>folly::Futures</code> and
-<code>folly::coro</code>, which power async operations across Meta’s
-infrastructure at scale. Meta is not waiting for
-<code>std::execution</code>. They ship folly.</p>
-<p><strong>Abseil</strong> (Google), 17k GitHub stars (<a href="https://github.com/abseil/abseil-cpp">GitHub</a>). “The
-fundamental building blocks that underpin most of what Google runs,”
-drawn from Google’s internal codebase and “production-tested and fully
-maintained” (<a href="https://abseil.io/about/">Abseil about page</a>).
-Google is not waiting for <code>std::execution</code> either.</p>
-<h3 id="the-cost-of-adding-more">6.3 The Cost of Adding More</h3>
-<p>Every feature added to the C++ standard must be implemented and
-maintained by standard library vendors. There are exactly three major
-implementations: libstdc++ (GNU), libc++ (LLVM), and Microsoft’s STL.
-Christopher Di Bella (Google, libc++ contributor) observes: “Due to its
-vast complexity, there have only been a handful of standard library
-implementations to date” (<a href="https://www.youtube.com/watch?v=bXlm3taD6lw">C++Now 2024
-talk</a>).</p>
-<p>The committee itself is strained. Bryce Adelstein Lelbach notes the
-committee has received “10x more proposals over the past decade” and
-describes it as “300 individual authors, not 1 team” (<a href="https://brycelelbach.github.io/cpp_convenor/">Convenor
-candidacy</a>). <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2656r2.html">P2656R2</a>
-observes that “the community is struggling to manage the challenges of
-the complexity and variability of the tools, technologies, and systems
-that make C++ possible.”</p>
-<p>David Sankel (Adobe) captured the risk in <a href="https://open-std.org/jtc1/sc22/wg21/docs/papers/2023/p3023r0.html">P3023R1</a>:</p>
+<p>The specification size tells the story. The C++26 <code>[exec]</code>
+section (<a href="https://eel.is/c++draft/exec">eel.is/c++draft/exec</a>) spans 16
+major subsections (33.1 through 33.16) with thousands of lines of
+normative wording. By contrast, <a href="https://wg21.link/p4003">D4003</a>’s IoAwaitables wording section
+is roughly 680 lines. D4003’s own non-normative note states:</p>
 <blockquote>
-<p>“The surest way to sabotage a standard is to say yes to
-everything.”</p>
+<p>“The wording below is not primarily intended for standardization. Its
+purpose is to demonstrate how a networking-focused, use-case-first
+design produces a dramatically leaner specification footprint. Compare
+this compact specification against the machinery required by
+P2300/P3826.”</p>
 </blockquote>
-<p>Adding <code>std::execution</code> to the standard carries a cost.
-That cost must be weighed against the benefit.</p>
-<h3 id="the-cost-of-not-standardizing-is-negligible">6.4 The Cost of Not
-Standardizing Is Negligible</h3>
-<p>The strongest argument for standardization is that it solves a
-coordination problem: if everyone needs the same thing and nobody can
-agree on which library to use, the standard breaks the deadlock by
-picking one.</p>
-<p>But no such coordination problem exists for
-<code>std::execution</code>.</p>
-<p><strong>The library is already available.</strong>
-<code>stdexec</code>, the reference implementation of
-<code>std::execution</code>, is available today as a standalone library
-(<a href="https://github.com/NVIDIA/stdexec">GitHub</a>, <a href="https://nvidia.github.io/stdexec/">nvidia.github.io/stdexec</a>).
-It can be installed with a single command via <a href="https://vcpkg.link/ports/stdexec">vcpkg</a>:
-<code>vcpkg install stdexec</code>. Anyone who wants sender/receiver can
-use it right now. Standardization adds nothing to its availability.</p>
-<p><strong>Package managers have eliminated the distribution
-problem.</strong> vcpkg offers over 2,600 C++ libraries (<a href="https://vcpkg.io/en/">vcpkg.io</a>). Conan hosts nearly 1,900
-recipes with over 9,600 references (<a href="https://conan.io/center">conan.io/center</a>). The era when the
-standard library was the only reliable way to distribute a C++ library
-is over. Modern C++ projects routinely depend on dozens of third-party
-libraries obtained through package managers. <code>std::execution</code>
-on vcpkg gives developers the same access as <code>std::execution</code>
-in the standard, without burdening implementers.</p>
-<p><strong>Boost proved the model.</strong> Boost has achieved over 10
-million downloads and is described by Herb Sutter and Andrei
-Alexandrescu as “one of the most highly regarded and expertly designed
-C++ library projects in the world” (<a href="https://www.boost.org/users/">boost.org</a>). Many Boost libraries
-thrive for years or decades without being standardized. Some are
-eventually adopted into the standard after proving themselves through
-widespread deployment. That is the TCP/IP pattern: prove it first,
-standardize it later.</p>
-<p><strong>Google proved it too.</strong> As noted in section 6.2,
-Google published <a href="https://github.com/abseil/abseil-cpp">Abseil</a> (17k GitHub
-stars) as a standalone open-source library, making their internal C++
-building blocks available to everyone. As Abseil’s documentation states,
-these are “the fundamental building blocks that underpin most of what
-Google runs,” and they are “production-tested and fully maintained” (<a href="https://abseil.io/about/">abseil.io/about</a>). Google did not
-push Abseil through the C++ standard. They did not burden standard
-library implementers. They did not consume committee time. They simply
-published it, and the community adopted it voluntarily. Abseil is now
-available to every C++ programmer, without costing the standard a single
-page.</p>
-<p><strong>Nobody is blocked.</strong> NVIDIA ships CUDA. Meta ships
-folly. Google ships Abseil. Intel ships oneTBB. ScyllaDB ships Seastar.
-The ecosystem is not waiting for the standard to provide an execution
-model. Every major company that needs heterogeneous or parallel
-computing has already built or adopted one. Delaying
-<code>std::execution</code> from the standard does not prevent anyone
-from using it. It only prevents the standard from locking in a design
-before the evidence justifies it.</p>
-<p><strong>The asymmetry is stark.</strong> If
-<code>std::execution</code> is removed from C++26 and offered as a
-standalone library:</p>
-<ul>
-<li>Users who want it lose nothing. They install it from vcpkg.</li>
-<li>Implementers gain relief from a massive implementation burden.</li>
-<li>The design gains time to mature, fix the 10+ papers in flight, and
-prove itself across domains.</li>
-<li>The committee gains bandwidth for higher-priority work. Every major
-programming language ships networking in its standard library: <a href="https://docs.python.org/3/library/socket.html">Python</a>, <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/package-summary.html">Java</a>,
-<a href="https://pkg.go.dev/net">Go</a>, <a href="https://doc.rust-lang.org/std/net/">Rust</a>, <a href="https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets">C#</a>,
-<a href="https://nodejs.org/api/net.html">JavaScript/Node.js</a>. None
-of them ship a sender/receiver execution framework. Networking is the
-more universal need, and C++ is the only major language that still lacks
-it.</li>
-</ul>
-<p>If <code>std::execution</code> stays in C++26 and the design proves
-wrong:</p>
-<ul>
-<li>Every C++ programmer inherits the cost.</li>
-<li>Three standard library teams must implement and maintain it
-indefinitely.</li>
-<li>The ABI is locked. Mistakes cannot be corrected without breaking the
-world.</li>
-<li>The standard’s credibility is diminished.</li>
-</ul>
-<p>The cost of including <code>std::execution</code> in the standard is
-real and permanent. The cost of not including it is negligible by
-comparison.</p>
-<h3 id="nvidia-already-ships-senderreceiver-for-gpu-without-the-standard">6.5
-NVIDIA Already Ships Sender/Receiver for GPU Without the Standard</h3>
-<p>The GPU use case is the primary motivation for
-<code>std::execution</code>’s design. But NVIDIA already ships a
-complete sender/receiver GPU integration as a standalone library, and it
-requires their own non-standard compiler. The standard is not
-involved.</p>
-<p><strong>The code lives in <code>nvexec</code>, not
-<code>std::execution</code>.</strong> NVIDIA’s stdexec repository
-contains a separate namespace, <code>nvexec</code>, with GPU-specific
-sender algorithms (<a href="https://github.com/NVIDIA/stdexec/tree/main/include/nvexec">github.com/NVIDIA/stdexec/tree/main/include/nvexec</a>).
-The files are <code>.cuh</code> (CUDA header) files, not standard C++
-headers. They include GPU-specific reimplementations of
-<code>bulk</code>, <code>then</code>, <code>when_all</code>,
-<code>continues_on</code>, <code>let_value</code>, <code>split</code>,
-<code>reduce</code>, and more.</p>
-<p><strong>The GPU scheduler uses CUDA-specific types that standard C++
-cannot express.</strong> The <code>stream_context.cuh</code> file (<a href="https://github.com/NVIDIA/stdexec/blob/main/include/nvexec/stream_context.cuh">source</a>)
-defines a <code>stream_scheduler</code> whose completion signatures
-include <code>cudaError_t</code>, a CUDA-specific error type:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> completion_signatures <span class="op">=</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    STDEXEC<span class="op">::</span>completion_signatures<span class="op">&lt;</span><span class="dt">set_value_t</span><span class="op">(),</span> <span class="dt">set_error_t</span><span class="op">(</span><span class="dt">cudaError_t</span><span class="op">)&gt;;</span></span></code></pre></div>
-<p>The scheduler’s <code>schedule()</code> method is annotated with CUDA
-execution space specifiers:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>STDEXEC_ATTRIBUTE<span class="op">(</span>nodiscard<span class="op">,</span> host<span class="op">,</span> device<span class="op">)</span> <span class="kw">auto</span> schedule<span class="op">()</span> <span class="at">const</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> sender<span class="op">{</span><span class="va">ctx_</span><span class="op">};</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>The <code>host, device</code> annotation maps to CUDA’s
-<code>__host__ __device__</code>, a non-standard extension. The
-<code>stream_context</code> constructor calls
-<code>cudaGetDevice()</code>, a CUDA runtime API function.</p>
-<p><strong>GPU programming requires non-standard language
-extensions.</strong> NVIDIA’s <a href="https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html">CUDA
-C/C++ Language Extensions</a> documentation enumerates the extensions
-that standard C++ cannot express:</p>
-<ul>
-<li>Execution space specifiers: “The execution space specifiers
-<code>__host__</code>, <code>__device__</code>, and
-<code>__global__</code> indicate whether a function executes on the host
-or the device.”</li>
-<li>Memory space specifiers: “The memory space specifiers
-<code>__device__</code>, <code>__managed__</code>,
-<code>__constant__</code>, and <code>__shared__</code> indicate the
-storage location of a variable on the device.”</li>
-<li>Kernel launch syntax: “The execution configuration is specified by
-inserting an expression in the form
-<code>&lt;&lt;&lt;grid_dim, block_dim, dynamic_smem_bytes, stream&gt;&gt;&gt;</code>
-between the function name and the parenthesized argument list.”</li>
-</ul>
-<p>None of these are valid C++. Code that uses them cannot be compiled
-by GCC, MSVC, or Clang without CUDA support. Every NVIDIA GPU user
-already depends on a non-standard compiler.</p>
-<p><strong>What this means.</strong> The primary use case for
-<code>std::execution</code>’s completion domains, <code>bulk</code>
-algorithm, and algorithm customization machinery is GPU dispatch. But
-GPU dispatch already works, today, in a standalone library
-(<code>nvexec</code>), distributed through stdexec, available on vcpkg,
-requiring NVIDIA’s own compiler. Adding <code>std::execution</code> to
-the C++ standard does not change this. NVIDIA’s users need
-<code>nvcc</code> regardless. The standard cannot express
-<code>__device__</code>, <code>__global__</code>,
-<code>&lt;&lt;&lt;&gt;&gt;&gt;</code>, or <code>cudaStream_t</code>. The
-GPU integration lives outside the standard by necessity, and it will
-continue to live outside the standard no matter what WG21 decides. The
-cost of standardization falls on implementers and the committee; the use
-case that motivates much of the design complexity cannot benefit from
-it.</p>
+<p>A narrow model designed for networking requires a fraction of the
+specification that a wide model designed for everything requires. This
+matters for implementers, for reviewers, and for the long-term
+maintainability of the standard. (For a fuller treatment of the
+narrow-vs-wide argument, see <a href="on-universal-models.md">On
+Universal Models</a> section 4.)</p>
+<p>Ten or more companion papers are still fixing
+<code>std::execution</code>’s design in the 2025-2026 mailings,
+addressing lifetimes, exception safety, diagnostics, memory bloat,
+forward progress guarantees, and a missing task type. A framework with
+this many open design questions has not yet demonstrated the stability
+that standardization requires.</p>
+<h3 id="the-standard-might-not-even-need-sockets">5.4 The Standard Might
+Not Even Need Sockets</h3>
+<p>A further observation: if the standard adopts an async execution
+model that is opinionated on buffer-oriented I/O, it might not need to
+standardize sockets at all. Users would choose a third-party library for
+the transport (Asio sockets, io_uring, platform APIs), but they could
+express the bulk of their algorithms abstractly against standard buffer
+concepts. Those algorithms would be sharable across the ecosystem
+regardless of the transport underneath.</p>
+<p>This is the model already demonstrated in practice.</p>
+<p><strong>Boost.HTTP</strong> follows a Sans-I/O architecture. Its
+documentation states: “The library itself does not perform any I/O
+operations or asynchronous flow control. Instead, it provides interfaces
+for consuming and producing buffers of data and events.” It works with
+“any I/O framework (Asio, io_uring, platform APIs)” (<a href="https://github.com/cppalliance/http">Boost.HTTP</a>).</p>
+<p><strong>Boost.Capy</strong> provides buffer-oriented stream concepts
+(<code>ReadStream</code>, <code>WriteStream</code>,
+<code>BufferSource</code>, <code>BufferSink</code>) with type-erased
+wrappers. Its documentation states: “It is not a networking library, yet
+it is the perfect foundation upon which networking libraries, or any
+libraries that perform I/O, may be built.” Algorithms written against
+<code>any_stream</code> have “zero knowledge of Asio” and achieve
+“complete portability with no Asio dependency in algorithm code” (<a href="https://github.com/cppalliance/capy">Boost.Capy</a>).</p>
+<p>Both Boost.HTTP and Boost.Capy are still in active development. The
+designs are early and may change. We are showing this work before it is
+finished because C++26 is about to ship, and the window for
+reconsidering the execution model direction is closing. These libraries
+are presented not as finished proposals but as evidence that the
+approach is viable. The pattern they demonstrate, writing I/O algorithms
+against abstract buffer concepts independent of the transport, is what
+matters. The specific libraries are proof of concept, not the final
+answer.</p>
+<p>The pattern is clear: standardize the buffer-oriented async I/O
+concepts and type-erased wrappers. Let the ecosystem provide the
+transports. The algorithms compose because they share the standard
+concepts, not because they share a specific socket implementation. This
+is a dramatically smaller standardization surface than either
+<code>std::execution</code> or full networking. And it solves the
+coordination problem: if everyone writes algorithms against the same
+buffer concepts, those algorithms interoperate regardless of the
+transport.</p>
 <hr />
-<h2 id="conclusion">7. Conclusion</h2>
-<p>The desire for a universal model is understandable. The people
-pursuing it are talented and well-intentioned. The work they have done
-has genuine value.</p>
-<p>But the evidence presented in this paper suggests the direction may
-have gotten ahead of itself. The domain is genuinely difficult. It is no
-failure to acknowledge that and take more time.</p>
-<p>The asymmetry of risk favors caution. As shown in section 6, delaying
-<code>std::execution</code> costs little. The library is on vcpkg today.
-The ecosystem is not waiting. But if we mandate a design that proves
-wrong, the cost compounds for decades. The C++ standard still cannot
-connect to the internet, and the only networking paper in flight (<a href="https://wg21.link/p3482">P3482</a>) is based on IETF TAPS, a
-framework that was never adopted outside a single proprietary
-implementation. The path forward for networking is not just delayed. It
-is pointing in a direction that has already failed.</p>
-<p>This paper asks the committee to consider, with open minds and good
-faith, whether the evidence supports the path we are on, or whether
-specialization with interoperation might serve the C++ community
-better.</p>
+<h2 id="conclusion">6. Conclusion</h2>
+<p>The committee recognized the need for a standard async model. That
+recognition was right. The question is one of priority.</p>
+<p>GPU computing has CUDA, oneTBB, Kokkos, Taskflow, and stdexec on
+vcpkg. That ecosystem is thriving without the standard’s help.
+Networking has no standard foundation at all. The tower of abstraction
+that every other language enjoys does not exist in C++.</p>
+<p>The committee’s energy is finite. Directing it toward the problem
+that only the standard can solve, an agreed-upon async I/O model that
+enables composable algorithms across library boundaries, would serve
+more C++ programmers than any other single investment the committee
+could make.</p>
+<p>C++20 gave us coroutines. The building blocks are in the language.
+Twenty years of Asio practice and emerging libraries like Capy and
+IoAwaitables show that the design space is rich and worth exploring. The
+work is not finished, but the direction is clear.</p>
+<p>The C++ Standard cannot connect to the Internet. It should.</p>
 <hr />
 <h2 id="references">References</h2>
 <ol type="1">
-<li><p>Joel Spolsky. “Don’t Let Architecture Astronauts Scare You.”
-2001.
-https://www.joelonsoftware.com/2001/04/21/dont-let-architecture-astronauts-scare-you/</p></li>
-<li><p>Engler et al. “Exokernel: An Operating System Architecture for
-Application-Level Resource Management.” MIT, 1995.
-https://people.eecs.berkeley.edu/~brewer/cs262b/hotos-exokernel.pdf</p></li>
-<li><p>Ted Elliot. “The One Ring Problem.” 2018.
-https://tedinski.com/2018/01/30/the-one-ring-problem-abstraction-and-power.html</p></li>
-<li><p>Andrew Russell. “OSI: The Internet That Wasn’t.” IEEE Spectrum,
-2013. https://spectrum.ieee.org/osi-the-internet-that-wasnt</p></li>
-<li><p>Richard Gabriel. “Objects Have Failed.” OOPSLA, 2002.
-https://dreamsongs.com/Files/ObjectsHaveFailed.pdf</p></li>
-<li><p>Wikipedia. “Composition over inheritance.”
-https://en.wikipedia.org/wiki/Composition_over_inheritance</p></li>
+<li><p>Boost.Asio.
+https://www.boost.org/doc/libs/release/doc/html/boost_asio.html</p></li>
+<li><p>Standalone Asio. https://github.com/chriskohlhoff/asio</p></li>
+<li><p>folly::coro. Meta.
+https://github.com/facebook/folly/blob/main/folly/experimental/coro/README.md</p></li>
+<li><p>Qt Signals and Slots.
+https://doc.qt.io/qt-6/signalsandslots.html</p></li>
+<li><p>PEP 3156. “Asynchronous IO Support Rebooted: the asyncio Module.”
+https://peps.python.org/pep-3156/</p></li>
+<li><p>Django. https://github.com/django/django</p></li>
+<li><p>TC39 Async/Await Proposal.
+https://tc39.es/proposal-async-await/</p></li>
+<li><p>Express.js. https://github.com/expressjs/express</p></li>
+<li><p>Next.js. https://github.com/vercel/next.js</p></li>
+<li><p>Go net/http package. https://pkg.go.dev/net/http</p></li>
+<li><p>Rust Blog. “Async-await on stable Rust!” 2019.
+https://blog.rust-lang.org/2019/11/07/Async-await-stable/</p></li>
+<li><p>Tokio. https://github.com/tokio-rs/tokio</p></li>
+<li><p>Axum. https://github.com/tokio-rs/axum</p></li>
+<li><p>Spring Boot.
+https://github.com/spring-projects/spring-boot</p></li>
+<li><p>C# async/await overview.
+https://dotnetcurry.com/csharp/869/async-await-csharp-dotnet</p></li>
+<li><p>ASP.NET Core. https://github.com/dotnet/aspnetcore</p></li>
+<li><p>Boost.Asio (GitHub). https://github.com/boostorg/asio</p></li>
+<li><p>P2000R4. “Direction for ISO C++.” WG21, 2022.
+https://open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2000r4.pdf</p></li>
+<li><p>nlohmann/json. https://github.com/nlohmann/json</p></li>
+<li><p>cpp-httplib. https://github.com/yhirose/cpp-httplib</p></li>
+<li><p>fmt. https://github.com/fmtlib/fmt</p></li>
+<li><p>Lakos, John. <em>Large-Scale C++ Software Design.</em>
+Addison-Wesley, 1996.
+https://informit.com/store/large-scale-c-plus-plus-software-design-9780201633627</p></li>
+<li><p>Boost.Beast.
+https://www.boost.org/doc/libs/release/libs/beast/</p></li>
+<li><p>P3185R0. “A proposed direction for C++ Standard Networking based
+on IETF TAPS.” WG21. https://wg21.link/p3185r0</p></li>
+<li><p>Networking TS reference implementation. Kohlhoff.
+https://github.com/chriskohlhoff/networking-ts-impl</p></li>
 <li><p>P2453R0. “2021 October Library Evolution and Concurrency
 Networking and Executors Poll Outcomes.” WG21, 2022.
 https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2453r0.html</p></li>
-<li><p>CppCon 2024. “Why Google Doesn’t Allow Ranges in Our Codebase.”
-Daisy Hollman.
-https://cppcon2024.sched.com/event/1gZgc/why-google-doesnt-allow-ranges-in-our-codebase</p></li>
-<li><p>NanoRange wiki. “Compile times.”
-https://github.com/tcbrindle/NanoRange/wiki/Compile-times</p></li>
-<li><p>Daniel Lemire. “std::ranges may not deliver the performance that
-you expect.” 2025.
-https://lemire.me/blog/2025/10/05/stdranges-may-not-deliver-the-performance-that-you-expect/</p></li>
-<li><p>IETF TAPS Working Group. Charter page.
-https://datatracker.ietf.org/wg/taps/about/</p></li>
-<li><p>P3482R1. Rodgers &amp; Kühl. “Design for C++ networking based on
-IETF TAPS.” WG21. https://wg21.link/p3482</p></li>
-<li><p>NEAT Project. https://www.neat-project.org/</p></li>
 <li><p>P2300R10. Dominiak et al. “std::execution.” WG21, 2024.
 https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2300r10.html</p></li>
-<li><p>Bryce Adelstein Lelbach. NVIDIA developer bio.
-https://developer.nvidia.com/blog/author/blelbach/</p></li>
-<li><p>Eric Niebler. GitHub. https://github.com/ericniebler</p></li>
-<li><p>Georgy Evtushenko. GitHub.
-https://github.com/gevtushenko</p></li>
-<li><p>Lee Howes. Meta developer blog.
-https://developers.facebook.com/blog/post/2021/09/16/async-stack-traces-folly-Introduction/</p></li>
-<li><p>P1241R0. “Merging Coroutines into C++.” WG21, 2018.
-https://open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1241r0.html</p></li>
-<li><p>libunifex. Facebook Experimental.
-https://github.com/facebookexperimental/libunifex</p></li>
 <li><p>stdexec. NVIDIA. https://nvidia.github.io/stdexec/</p></li>
-<li><p>P2999R3. Niebler. “Sender Algorithm Customization.” WG21, 2023.
-https://wg21.link/p2999r3</p></li>
-<li><p>P3303R1. Niebler. “Fixing Lazy Sender Algorithm Customization.”
-WG21, 2024.
-https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3303r1.html</p></li>
-<li><p>P3826R3. Niebler. “Fix Sender Algorithm Customization.” WG21,
-2026. https://wg21.link/p3826</p></li>
-<li><p>D4007R0. Falco. “std::execution Needs More Time.” WG21, 2026.
-https://wg21.link/p4007</p></li>
-<li><p>stdexec io_uring.cpp.
-https://github.com/NVIDIA/stdexec/blob/main/examples/io_uring.cpp</p></li>
-<li><p>NVIDIA/stdexec#1062. “io_uring reading files.”
-https://github.com/NVIDIA/stdexec/issues/1062</p></li>
-<li><p>libunifex issue #244. “Question about any_sender_of usage.”
-https://github.com/facebookexperimental/libunifex/issues/244</p></li>
-<li><p>P1863R1. “ABI breakage.” WG21, 2020.
-https://open-std.org/jtc1/sc22/wg21/docs/papers/2020/p1863r1.pdf</p></li>
-<li><p>Gentoo. “The impact of C++ templates on library ABI.” 2012.
-https://blogs.gentoo.org/mgorny/2012/08/20/the-impact-of-cxx-templates-on-library-abi/</p></li>
-<li><p>Boost.Asio. “Why EOF is an error.”
-https://www.boost.org/doc/libs/release/doc/html/boost_asio/design/eof.html</p></li>
-<li><p>Asio issue #1100. “Feature request: Type-erased handler wrapper.”
-https://github.com/chriskohlhoff/asio/issues/1100</p></li>
-<li><p>P2079. “System execution context.” WG21.
-https://wg21.link/p2079</p></li>
-<li><p>P3164. “Improving diagnostics for sender expressions.” WG21.
-https://wg21.link/p3164</p></li>
-<li><p>P3373. “Of Operation States and Their Lifetimes.” WG21.
-https://wg21.link/p3373</p></li>
-<li><p>P3388. “When Do You Know connect Doesn’t Throw?” WG21.
-https://wg21.link/p3388</p></li>
-<li><p>P3425. “Reducing operation-state sizes for subobject child
-operations.” WG21. https://wg21.link/p3425</p></li>
-<li><p>P3481. “std::execution::bulk() issues.” WG21.
-https://wg21.link/p3481</p></li>
+<li><p>Burja, Samo. <em>Great Founder Theory.</em> 2020.
+https://www.samoburja.com/gft/</p></li>
+<li><p>NVIDIA CUDA C/C++ Language Extensions.
+https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html</p></li>
+<li><p>stdexec on vcpkg. https://vcpkg.link/ports/stdexec</p></li>
+<li><p>P0912R5. “Merging Coroutines into C++20.” WG21.
+https://wg21.link/p0912r5</p></li>
 <li><p>P3552. “Add a Coroutine Task Type.” WG21.
 https://wg21.link/p3552</p></li>
-<li><p>P3557. “High-Quality Sender Diagnostics with Constexpr
-Exceptions.” WG21. https://wg21.link/p3557</p></li>
-<li><p>P3564. “Make the concurrent forward progress guarantee usable in
-bulk.” WG21. https://wg21.link/p3564</p></li>
+<li><p>D4007R0. Falco. “std::execution Needs More Time.” WG21, 2026.
+https://wg21.link/p4007</p></li>
+<li><p>P3826R3. Niebler. “Fix Sender Algorithm Customization.” WG21,
+2026. https://wg21.link/p3826</p></li>
 <li><p>D4003. Falco et al. “IoAwaitables: A Coroutines-Only Execution
 Model.” WG21. https://wg21.link/p4003</p></li>
 <li><p>TooManyCooks. https://github.com/tzcnt/TooManyCooks</p></li>
-<li><p>N3747. Kohlhoff. “A Universal Model for Asynchronous Operations.”
-WG21, 2013.
-https://open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf</p></li>
-<li><p>Wikipedia. “Unix philosophy.”
-https://en.wikipedia.org/wiki/Unix_philosophy</p></li>
-<li><p>Wikipedia. “Hourglass model.”
-https://en.wikipedia.org/wiki/Hourglass_model</p></li>
-<li><p>David Clark. “The Design Philosophy of the DARPA Internet
-Protocols.” 1988.
-https://www.cs.princeton.edu/~jrex/teaching/spring2005/reading/clark88.pdf</p></li>
-<li><p>William Kahan. “An Interview with the Old Man of Floating-Point.”
-https://people.eecs.berkeley.edu/~wkahan/ieee754status/754story.html</p></li>
-<li><p>Hacker News discussion on std::ranges.
-https://news.ycombinator.com/item?id=40317350</p></li>
-<li><p>Boost.Asio.
-https://www.boost.org/doc/libs/release/doc/html/boost_asio.html</p></li>
 <li><p>Capy. https://github.com/cppalliance/capy</p></li>
-<li><p>Corosio. https://github.com/cppalliance/corosio</p></li>
-<li><p>NVIDIA CCCL (Thrust, CUB, libcu++).
-https://github.com/NVIDIA/cccl</p></li>
-<li><p>NVIDIA Thrust documentation.
-https://nvidia.github.io/cccl/thrust/</p></li>
-<li><p>Kokkos. https://github.com/kokkos/kokkos</p></li>
-<li><p>Kokkos Programming Guide: Introduction.
-https://kokkos.org/kokkos-core-wiki/ProgrammingGuide/Introduction.html</p></li>
-<li><p>RAJA. Lawrence Livermore National Laboratory.
-https://github.com/llnl/RAJA</p></li>
-<li><p>RAJA project page. LLNL.
-https://computing.llnl.gov/projects/raja-managing-application-portability-next-generation-platforms</p></li>
-<li><p>“Quantifying OpenMP: Statistical Insights into Usage and
-Adoption.” 2023. https://arxiv.org/pdf/2308.08002</p></li>
-<li><p>OpenMP 6.0 announcement.
-https://openmp.org/home-news/openmp-arb-releases-openmp-6-0-for-easier-programming</p></li>
-<li><p>Taskflow. https://github.com/taskflow/taskflow</p></li>
-<li><p>Taskflow paper. https://arxiv.org/pdf/2004.10908</p></li>
-<li><p>oneTBB (Intel). https://github.com/uxlfoundation/oneTBB</p></li>
-<li><p>oneTBB documentation.
-https://uxlfoundation.github.io/oneTBB/</p></li>
-<li><p>HPX. https://github.com/STEllAR-GROUP/hpx</p></li>
-<li><p>HPX website. https://hpx.stellar-group.org/</p></li>
-<li><p>folly (Meta). https://github.com/facebook/folly</p></li>
-<li><p>Abseil (Google). https://github.com/abseil/abseil-cpp</p></li>
-<li><p>Abseil about page. https://abseil.io/about/</p></li>
-<li><p>Christopher Di Bella. “What Does It Take to Implement the C++
-Standard Library?” C++Now 2024.
-https://www.youtube.com/watch?v=bXlm3taD6lw</p></li>
-<li><p>Bryce Adelstein Lelbach. Convenor candidacy.
-https://brycelelbach.github.io/cpp_convenor/</p></li>
-<li><p>P2656R2. “C++ Ecosystem International Standard.” WG21, 2023.
-https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2656r2.html</p></li>
-<li><p>P3023R1. Sankel. “C++ Should Be C++.” WG21, 2023.
-https://open-std.org/jtc1/sc22/wg21/docs/papers/2023/p3023r0.html</p></li>
 <li><p>Stepanov. “The Standard Template Library.” 1994.
 https://stepanovpapers.com/Stepanov-The_Standard_Template_Library-1994.pdf</p></li>
-<li><p>gRPC. https://github.com/grpc/grpc</p></li>
-<li><p>gRPC C++ Callback API Tutorial.
-https://grpc.io/docs/languages/cpp/callback</p></li>
-<li><p>libuv. https://github.com/libuv/libuv</p></li>
-<li><p>libuv documentation. https://docs.libuv.org/en/stable</p></li>
-<li><p>Seastar. https://github.com/scylladb/seastar</p></li>
-<li><p>Seastar website. https://www.seastar.io/</p></li>
-<li><p>cppcoro. Lewis Baker.
-https://github.com/lewissbaker/cppcoro</p></li>
-<li><p>stdexec on vcpkg. https://vcpkg.link/ports/stdexec</p></li>
-<li><p>vcpkg. Microsoft. https://vcpkg.io/en/</p></li>
-<li><p>Conan Center. https://conan.io/center</p></li>
-<li><p>Boost background information.
-https://www.boost.org/users/</p></li>
-<li><p>cppreference. “RAII.”
-https://en.cppreference.com/w/cpp/language/raii</p></li>
 <li><p>cppreference. “Allocator (named requirement).”
 https://en.cppreference.com/w/cpp/named_req/Allocator</p></li>
-<li><p>Python standard library: socket.
-https://docs.python.org/3/library/socket.html</p></li>
-<li><p>Java standard library: java.net.
-https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/package-summary.html</p></li>
-<li><p>Go standard library: net. https://pkg.go.dev/net</p></li>
-<li><p>Rust standard library: std::net.
-https://doc.rust-lang.org/std/net/</p></li>
-<li><p>C# standard library: System.Net.Sockets.
-https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets</p></li>
-<li><p>Node.js standard library: net.
-https://nodejs.org/api/net.html</p></li>
-<li><p>nvexec (NVIDIA GPU sender/receiver integration).
-https://github.com/NVIDIA/stdexec/tree/main/include/nvexec</p></li>
-<li><p>nvexec stream_context.cuh source.
-https://github.com/NVIDIA/stdexec/blob/main/include/nvexec/stream_context.cuh</p></li>
-<li><p>NVIDIA CUDA C/C++ Language Extensions.
-https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html</p></li>
+<li><p>cppreference. “RAII.”
+https://en.cppreference.com/w/cpp/language/raii</p></li>
+<li><p>C++26 Working Draft, [exec] section.
+https://eel.is/c++draft/exec</p></li>
+<li><p>Boost.HTTP. https://github.com/cppalliance/http</p></li>
 </ol>
 </body>
 </html>
