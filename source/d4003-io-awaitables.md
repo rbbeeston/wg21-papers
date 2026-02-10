@@ -1,12 +1,13 @@
-| Document | D4003 |
+::: {.document-info}
+
+| **Document:** |  D4003 |
 |----------|-------|
-| Date:       | 2026-01-21
-| Reply-to:   | Vinnie Falco \<vinnie.falco@gmail.com\><br>Steve Gerbino \<steve@gerbino.co\><br>Amlal El Mahrouss \<amlalelmahrouss@icloud.com\><br>Mungo Gill \<mungo.gill@me.com\>
-| Audience:   | Boost, C++
+| **Date:**      | 2026-01-21
+| **Reply-to:**   | Vinnie Falco \<vinnie.falco@gmail.com\><br>Steve Gerbino \<steve@gerbino.co\><br>Amlal El Mahrouss \<amlalelmahrouss@icloud.com\><br>Mungo Gill \<mungo.gill@me.com\>
+| **Audience:**   | Boost, C++
+:::
 
----
-
-# IoAwaitables: A Coroutines-Only Execution Model
+# IoAwaitables: A Coroutines-Only Framework
 
 ## Abstract
 

@@ -1,14 +1,14 @@
+::: {.document-info}
 | Document | D0000 |
 |----------|-------|
 | Date:       | 2026-02-09
 | Reply-to:   | Vinnie Falco \<vinnie.falco@gmail.com\>
 | Audience:   | All of WG21
-
----
+::: 
 
 # On Universal Models
 
-**Abstract**
+## Abstract
 
 Software engineering has a recurring pattern: smart people see commonality across domains and conclude that one abstraction should serve them all. Sometimes they are right. TCP/IP and IEEE 754 are genuine universal models that emerged from practice and proved themselves across decades of deployment. More often they are wrong, and the universal framework loses to pragmatic, specialized alternatives. This paper examines the evidence for and against a universal execution model in C++, focusing on `std::execution` ([P2300](https://wg21.link/p2300)). It proposes no wording changes. It asks the committee to consider whether the evidence supports the current direction, or whether specialization with interoperation might serve the C++ community better.
 
