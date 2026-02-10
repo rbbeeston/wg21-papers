@@ -16,9 +16,7 @@ This paper discusses a key observation: The C++ Standard cannot connect to the I
 
 ## 1. The Observation
 
-This paper discusses a key observation: The C++ Standard cannot connect to the Internet.
-
-This is not for lack of trying. Third-party networking libraries exist and are widely used. [Boost.Asio](https://www.boost.org/doc/libs/release/doc/html/boost_asio.html) has been in production for over twenty years. But Asio itself ships as two incompatible published versions, Boost.Asio and [standalone Asio](https://github.com/chriskohlhoff/asio), with different namespaces and different build configurations. This is the coordination problem in miniature: even the most popular, most mature C++ networking library cannot agree with itself on a single interface.
+The C++ standard cannot connect to the internet, and it is not for lack of trying. Third-party networking libraries exist and are widely used. [Boost.Asio](https://www.boost.org/doc/libs/release/doc/html/boost_asio.html) has been in production for over twenty years. But Asio itself ships as two incompatible published versions, Boost.Asio and [standalone Asio](https://github.com/chriskohlhoff/asio), with different namespaces and different build configurations. This is the coordination problem in miniature: even the most popular, most mature C++ networking library cannot agree with itself on a single interface.
 
 The deeper problem is not sockets. It is the absence of a standard asynchronous execution model for I/O.
 
@@ -38,13 +36,13 @@ Every major programming language standardized an async foundation. In some cases
 
 **Go** shipped goroutines, channels, and `net/http` in the standard library from day one (2009). The `net/http` package is imported by [1,705,800 known packages](https://pkg.go.dev/net/http). The entire Go microservices ecosystem is built on this foundation.
 
-**Rust** stabilized `async`/`await` in Rust 1.39 (November 2019; [Rust blog announcement](https://blog.rust-lang.org/2019/11/07/Async-await-stable/)) and standardized the [`Future`](https://doc.rust-lang.org/std/future/trait.Future.html) trait in `std`. The I/O runtime is not in the standard library — [Tokio](https://github.com/tokio-rs/tokio) (31k stars) fills that role. But because every runtime implements the same `Future` trait, libraries like [hyper](https://github.com/hyperium/hyper) and [Axum](https://github.com/tokio-rs/axum) (24.9k stars) are runtime-agnostic. Rust standardized the narrow composability contract, and the ecosystem built on it.
+**Rust** stabilized `async`/`await` in Rust 1.39 (November 2019; [Rust blog announcement](https://blog.rust-lang.org/2019/11/07/Async-await-stable/)) and standardized the [`Future`](https://doc.rust-lang.org/std/future/trait.Future.html) trait in `std`. The I/O runtime is not in the standard library; [Tokio](https://github.com/tokio-rs/tokio) (31k stars) fills that role. But because every runtime implements the same `Future` trait, libraries like [hyper](https://github.com/hyperium/hyper) and [Axum](https://github.com/tokio-rs/axum) (24.9k stars) are runtime-agnostic. Rust standardized the narrow composability contract, and the ecosystem built on it.
 
 **Java** has had `java.net` in the standard library since JDK 1.0 (1996). The ecosystem built upward. [Spring Boot](https://github.com/spring-projects/spring-boot) (79.9k stars) sits atop this foundation.
 
 **C#** shipped `async`/`await` and the `Task` type in C# 5.0 (2012; [overview](https://dotnetcurry.com/csharp/869/async-await-csharp-dotnet)), with a built-in thread pool and I/O completion in the standard library. The ecosystem built upward. [ASP.NET Core](https://github.com/dotnet/aspnetcore) (37.7k stars) sits atop this foundation.
 
-In every case, standardization of an async foundation — whether a full I/O model or a narrow composability trait — enabled the ecosystem to build upward. The frameworks came after the foundation. The combined GitHub stars of these higher-level frameworks exceed 500,000.
+In every case, standardization of an async foundation, whether a full I/O model or a narrow composability trait, enabled the ecosystem to build upward. The frameworks came after the foundation. The combined GitHub stars of these higher-level frameworks exceed 500,000.
 
 **C++** added coroutines in C++20 but standardized neither an async I/O model nor a composability trait for async operations. The language machinery is there. The foundation is not. C++ bottoms out at [Boost.Asio](https://github.com/boostorg/asio) (1.5k stars, third party, no standard status), or raw POSIX/Winsock. There is no Django, no Express, no Spring Boot of C++. Not because C++ programmers are less capable, but because there is no standard foundation to build on.
 
@@ -70,7 +68,7 @@ This cultural norm is a symptom of the missing foundation. In a healthy ecosyste
 
 John Lakos's *Large-Scale C++ Software Design* ([Addison-Wesley, 1996](https://informit.com/store/large-scale-c-plus-plus-software-design-9780201633627)) established that well-structured systems with clear hierarchical dependencies are "fundamentally easier and more economical to maintain, test, and reuse." The "no dependencies" instinct inverts this principle. It treats isolation as a virtue when shared foundations would be more productive.
 
-The absence of a standard async model makes this dysfunction worse. Since no foundation exists, every library must reinvent it or avoid async entirely.
+The absence of a standard async model makes this dysfunction worse. Since no foundation exists, every library must reinvent it or avoid async entirely. cpp-httplib, the most popular C++ HTTP library listed above, warns in its own README: "This library uses 'blocking' socket I/O. If you are looking for a library with 'non-blocking' socket I/O, this is not the one that you want." A 16k-star HTTP library cannot offer async because there is no standard async foundation to build on.
 
 ---
 
@@ -82,11 +80,9 @@ By 2021, the executor debate had consumed the effort. On 2021-09-28, SG1 polled 
 
 The committee chose [P2300](https://wg21.link/p2300) (`std::execution`), a sender/receiver framework. It is now in the C++26 working draft.
 
-C++26 is about to ship `std::execution`, an asynchronous execution model. The committee decided it needed a standard async framework. That instinct was correct. But the framework that landed was designed for GPU and parallel computing (section 5.1 presents the evidence). The [stdexec documentation](https://nvidia.github.io/stdexec/) confirms: "Interop with networking is being explored for C++29." Networking is not a first-class citizen in the async model the committee chose. It is an afterthought.
+C++26 is about to ship `std::execution`, an asynchronous execution model. The committee decided it needed a standard async framework. That instinct was correct. But the framework that landed was designed for GPU and parallel computing (section 5.1 presents the evidence). The [stdexec documentation](https://nvidia.github.io/stdexec/) confirms: "Interop with networking is being explored for C++29." Networking is deferred to C++29 at the earliest.
 
-The committee spent a decade on this path. The Networking TS was proposed in 2014. It is now 2026. The C++ standard still cannot connect to the internet.
-
-This is not blame. The domain is genuinely difficult. The instinct to find a universal model is natural. But the cost of the delay is real. The committee recognized the need for a standard async model, and that recognition was right. The question is whether the model that landed serves the most important use case.
+This is not blame. The Networking TS was proposed in 2014. It is now 2026. The C++ standard still cannot connect to the internet. The domain is genuinely difficult. The instinct to find a universal model is natural. But the cost of the delay is real. The committee recognized the need for a standard async model, and that recognition was right. The question is whether the model that landed serves the most important use case.
 
 ---
 
@@ -96,7 +92,7 @@ If C++ is going to standardize an asynchronous execution model, it should meet t
 
 ### 5.1 It Should Put Networking First
 
-Networking is not just another feature. It is the infrastructure through which modern institutions coordinate. Samo Burja's *Great Founder Theory* ([samoburja.com/gft](https://www.samoburja.com/gft/)) describes "social technology" as a coordination mechanism that can be documented and taught. The internet is the most consequential social technology of our era. Every other major programming language standardized an async foundation for networking — whether a full I/O model or a narrow composability trait (section 2). None of them ship a sender/receiver execution framework. C++ ships neither. When a language cannot participate in building the coordination infrastructure that civilization depends on, the gap is not merely technical. It is strategic.
+Networking is not just another feature. It is the infrastructure through which modern institutions coordinate. Samo Burja's *Great Founder Theory* ([samoburja.com/gft](https://www.samoburja.com/gft/)) describes "social technology" as a coordination mechanism that can be documented and taught. The internet is the most consequential social technology of our era. Every other major programming language standardized an async foundation for networking, whether a full I/O model or a narrow composability trait (section 2). None of them ship a sender/receiver execution framework. C++ ships neither. When a language cannot participate in building the coordination infrastructure that civilization depends on, the gap is not merely technical. It is strategic.
 
 GPU users already have CUDA, which requires NVIDIA's non-standard compiler. The `__device__`, `__global__`, and `<<<>>>` syntax are not valid C++ ([CUDA C/C++ Language Extensions](https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html)). Adding `std::execution` to the standard provides no benefit to GPU users that [stdexec on vcpkg](https://vcpkg.link/ports/stdexec) does not already provide.
 
@@ -106,7 +102,7 @@ GPU users already have CUDA, which requires NVIDIA's non-standard compiler. The 
 
 The GPU ecosystem is wide but not tall. CUDA leads to cuDNN, cuBLAS, cuFFT, OptiX, and custom kernels. Each library uses the foundation directly. There is no stacking. There is no "Django of GPU." GPU workloads are domain-specific: custom kernels for physics simulations, ML training loops, rendering pipelines. The use cases do not compose upward the way networking use cases do.
 
-Standardizing `std::execution` for GPU would not produce the ecosystem benefit that standardizing an async I/O model for networking would. The return on investment is asymmetric: networking standardization enables exponential ecosystem growth (towers), while GPU standardization enables linear growth at best (more libraries at the same level).
+Standardizing `std::execution` for GPU would not produce the ecosystem benefit that standardizing an async I/O model for networking would. The return on investment is asymmetric: networking standardization enables exponential ecosystem growth (towers), while GPU standardization enables linear growth (more libraries at the same level).
 
 ### 5.2 It Should Be Built on C++20 Coroutines
 

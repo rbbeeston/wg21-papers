@@ -70,7 +70,7 @@ Louis Pouzin, a veteran of the effort, observed in 1991 (quoted in the [same art
 
 OSI did not fail because its designers were incompetent. It failed because the universal framework was too heavy to compete with pragmatic, deployed alternatives. The comprehensive design that looked like a strength on paper became a liability in practice.
 
-A natural objection is that OSI failed simply because TCP/IP had too much momentum — an installed base that was too large to displace. But OSI had enormous institutional momentum of its own. The U.S. government mandated it for procurement (GOSIP, 1988). European governments imposed similar requirements. ISO, the ITU, and major corporations backed it. If momentum were the deciding factor, the mandates should have worked. They didn't. TCP/IP kept winning despite active institutional resistance, because it was simpler to implement, faster to deploy, and cheaper to maintain. The momentum TCP/IP accumulated was a consequence of its narrow, pragmatic design — not an independent variable that happened to favor it.
+A natural objection is that OSI failed simply because TCP/IP had too much momentum — an installed base that was too large to displace. But OSI had enormous institutional momentum of its own. The U.S. government mandated it for procurement ([GOSIP](https://en.wikipedia.org/wiki/Government_Open_Systems_Interconnection_Profile), 1988). European governments imposed similar requirements. ISO, the ITU, and major corporations backed it ([IEEE Spectrum](https://spectrum.ieee.org/osi-the-internet-that-wasnt)). If momentum were the deciding factor, the mandates should have worked. They didn't. TCP/IP kept winning despite active institutional resistance, because it was simpler to implement, faster to deploy, and cheaper to maintain. The momentum TCP/IP accumulated was a consequence of its narrow, pragmatic design — not an independent variable that happened to favor it.
 
 ### 2.2 "Everything Is an Object"
 
@@ -140,9 +140,7 @@ Nobody objected to portable socket wrappers. The schism was entirely about which
 
 #### 3.5.1 GPU-Oriented Design
 
-Seven of nine [P2300R10](https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2300r10.html) authors come from GPU or large-scale compute companies. Four are from NVIDIA: Bryce Adelstein Lelbach ([NVIDIA principal architect](https://developer.nvidia.com/blog/author/blelbach/)), Eric Niebler ([GitHub](https://github.com/ericniebler)), Michael Garland, and Georgy Evtushenko ([GitHub](https://github.com/gevtushenko)). Three are from Meta/Facebook: Lee Howes ([Meta developer blog](https://developers.facebook.com/blog/post/2021/09/16/async-stack-traces-folly-Introduction/)), Lewis Baker ([P1241R0](https://open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1241r0.html) lists lbaker@fb.com), and Kirk Shoop ([libunifex under facebookexperimental](https://github.com/facebookexperimental/libunifex)). The reference implementation, `stdexec`, is hosted at [nvidia.github.io](https://nvidia.github.io/stdexec/).
-
-This is not an accusation. It is an observation about where the design priorities naturally come from. The design machinery reflects GPU and heterogeneous computing concerns:
+The [P2300R10](https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p2300r10.html) author list draws predominantly from GPU and large-scale compute companies. The reference implementation, `stdexec`, is hosted at [nvidia.github.io](https://nvidia.github.io/stdexec/). No author of a shipping, production-deployed networking library appears on the paper. This matters because the design machinery reflects the domains its authors work in:
 
 - P2300R10 §1.1 frames the motivation around "GPUs in the world's fastest supercomputer."
 - P2300R10 §1.2 prioritizes "the diversity of execution resources and execution agents, because not all execution agents are created equal."
@@ -153,7 +151,7 @@ This is not an accusation. It is an observation about where the design prioritie
 
 The entire sender algorithm customization lineage ([P2999R3](https://wg21.link/p2999r3), [P3303R1](https://open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3303r1.html), [P3826](https://wg21.link/p3826)) is about domain-based algorithm dispatch. These papers contain zero mentions of networking, sockets, or I/O.
 
-Among the 10 companion papers in flight, the authors come from NVIDIA, Intel, Meta, or are working on `std::execution` machinery itself. No author of a shipping, production-deployed networking library is shaping this design. When a framework claims universality across domains, the absence of domain experts from its design process is worth noting.
+Among the 10 companion papers in flight (see §3.5.5), the authors come from NVIDIA, Intel, Meta, or are working on `std::execution` machinery itself. When a framework claims universality across domains, the absence of I/O and networking domain experts from its design process is worth noting.
 
 #### 3.5.2 Networking Deferred
 
@@ -199,7 +197,7 @@ At least 10 companion papers are actively fixing, extending, and patching `std::
 
 - [P2079](https://wg21.link/p2079) "System execution context": A global thread pool for parallel forward progress. Explicitly GPU/parallel: "System scheduler works best with CPU-intensive workloads." I/O is deferred as future work.
 
-- [P3164](https://wg21.link/p3164) "Improving diagnostics for sender expressions" (Niebler): Fixes a design flaw where type errors in sender expressions are diagnosed too late. Zero mentions of networking.
+- [P3164](https://wg21.link/p3164) "Improving diagnostics for sender expressions" (Niebler): Fixes a design flaw where type errors in sender expressions are diagnosed too late.
 
 - [P3373](https://wg21.link/p3373) "Of Operation States and Their Lifetimes" (Leahy): Reveals that basic lifetime semantics were not properly designed. The paper observes: "the analogue thereof for asynchronous code under the framework of std::execution moves in only one direction (i.e. such storage is only ever 'allocated')."
 
@@ -207,15 +205,15 @@ At least 10 companion papers are actively fixing, extending, and patching `std::
 
 - [P3425](https://wg21.link/p3425) "Reducing operation-state sizes" (Baker): Operation states are bloated. Filed as a national body comment against C++26. The Hagenberg review noted no deployment experience. Real-world frameworks like HPX and pika already solved this problem. `std::execution` regressed relative to existing practice.
 
-- [P3481](https://wg21.link/p3481) "std::execution::bulk() issues": Explicitly GPU-focused: "For GPUs is important to have a version of `bulk` that ensures one execution agent per iteration." Fundamental API gaps remain: "the following are unclear: Can `bulk` invoke the given functor concurrently? Can `bulk` create decayed copies?" Zero networking mentions.
+- [P3481](https://wg21.link/p3481) "std::execution::bulk() issues": Explicitly GPU-focused: "For GPUs is important to have a version of `bulk` that ensures one execution agent per iteration." Fundamental API gaps remain: "the following are unclear: Can `bulk` invoke the given functor concurrently? Can `bulk` create decayed copies?"
 
-- [P3552](https://wg21.link/p3552) "Add a Coroutine Task Type" (Kühl, Nadolski): `std::execution` shipped in C++26 without a coroutine task type, the primary way users are expected to interact with it. The paper lists 12 unsolved design objectives. Zero networking examples.
+- [P3552](https://wg21.link/p3552) "Add a Coroutine Task Type" (Kühl, Nadolski): `std::execution` shipped in C++26 without a coroutine task type, the primary way users are expected to interact with it. The paper lists 12 unsolved design objectives.
 
-- [P3557](https://wg21.link/p3557) "High-Quality Sender Diagnostics" (Niebler): Sender misuse produces "megabytes of incomprehensible diagnostics." The paper "exposed several bugs in the Working Draft for C++26." Zero networking mentions.
+- [P3557](https://wg21.link/p3557) "High-Quality Sender Diagnostics" (Niebler): Sender misuse produces "megabytes of incomprehensible diagnostics." The paper "exposed several bugs in the Working Draft for C++26."
 
-- [P3564](https://wg21.link/p3564) "Make concurrent forward progress usable in bulk" (Hoemmen, NVIDIA): Explicitly GPU: "CUDA distinguishes ordinary bulk execution ('device kernel') launch... from so-called 'cooperative' bulk execution launch." Forward progress guarantees are fundamentally broken. Zero networking mentions.
+- [P3564](https://wg21.link/p3564) "Make concurrent forward progress usable in bulk" (Hoemmen, NVIDIA): Explicitly GPU: "CUDA distinguishes ordinary bulk execution ('device kernel') launch... from so-called 'cooperative' bulk execution launch." Forward progress guarantees are fundamentally broken.
 
-- [P3826](https://wg21.link/p3826) "Fix Sender Algorithm Customization" (Niebler): Predecessor papers [P2999R3](https://wg21.link/p2999r3) and [P3303R1](https://wg21.link/p3303r1) contain zero networking discussion. The machinery is purely domain-based algorithm dispatch for GPU backends.
+- [P3826](https://wg21.link/p3826) "Fix Sender Algorithm Customization" (Niebler): Predecessor papers [P2999R3](https://wg21.link/p2999r3) and [P3303R1](https://wg21.link/p3303r1) address domain-based algorithm dispatch for GPU backends.
 
 Of these 10 papers, zero are about networking. At least four are explicitly GPU/parallel focused (P2079, P3481, P3564, P3826). The rest fix fundamental design deficiencies: lifetimes, exception safety, diagnostics, memory bloat, and a missing task type. A framework with this many open design questions is not ready to be declared universal.
 
@@ -331,15 +329,13 @@ Every feature added to the C++ standard must be implemented and maintained by st
 
 The committee itself is strained. Bryce Adelstein Lelbach notes the committee has received "10x more proposals over the past decade" and describes it as "300 individual authors, not 1 team" ([Convenor candidacy](https://brycelelbach.github.io/cpp_convenor/)). [P2656R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2656r2.html) observes that "the community is struggling to manage the challenges of the complexity and variability of the tools, technologies, and systems that make C++ possible."
 
-David Sankel (Adobe) put the risk plainly in [P3023R1](https://open-std.org/jtc1/sc22/wg21/docs/papers/2023/p3023r0.html):
+David Sankel (Adobe) captured the risk in [P3023R1](https://open-std.org/jtc1/sc22/wg21/docs/papers/2023/p3023r0.html):
 
 > "The surest way to sabotage a standard is to say yes to everything."
->
-> "[A complex mess of incoherent ideas becomes] insanity to the point of endangering the future of C++."
 
 Adding `std::execution` to the standard carries a cost. That cost must be weighed against the benefit.
 
-### 6.4 The Cost of Not Standardizing Is Zero
+### 6.4 The Cost of Not Standardizing Is Negligible
 
 The strongest argument for standardization is that it solves a coordination problem: if everyone needs the same thing and nobody can agree on which library to use, the standard breaks the deadlock by picking one.
 
@@ -369,7 +365,7 @@ If `std::execution` stays in C++26 and the design proves wrong:
 - The ABI is locked. Mistakes cannot be corrected without breaking the world.
 - The standard's credibility is diminished.
 
-The cost of including `std::execution` in the standard is real and permanent. The cost of not including it is zero.
+The cost of including `std::execution` in the standard is real and permanent. The cost of not including it is negligible by comparison.
 
 ### 6.5 NVIDIA Already Ships Sender/Receiver for GPU Without the Standard
 
@@ -402,9 +398,7 @@ The `host, device` annotation maps to CUDA's `__host__ __device__`, a non-standa
 
 None of these are valid C++. Code that uses them cannot be compiled by GCC, MSVC, or Clang without CUDA support. Every NVIDIA GPU user already depends on a non-standard compiler.
 
-**What this means.** The primary use case for `std::execution`'s completion domains, `bulk` algorithm, and algorithm customization machinery is GPU dispatch. But GPU dispatch already works, today, in a standalone library (`nvexec`), distributed through stdexec, available on vcpkg, requiring NVIDIA's own compiler. Adding `std::execution` to the C++ standard does not help this use case. NVIDIA's users need `nvcc` regardless. The standard cannot express `__device__`, `__global__`, `<<<>>>`, or `cudaStream_t`. The GPU integration lives outside the standard by necessity, and it will continue to live outside the standard no matter what WG21 does.
-
-The standard is being asked to absorb the cost of `std::execution` so that NVIDIA can use it as a foundation for `nvexec`. But `nvexec` already exists and works without the standard. The cost falls on implementers and the committee. The benefit accrues to a use case that cannot be expressed in standard C++ anyway.
+**What this means.** The primary use case for `std::execution`'s completion domains, `bulk` algorithm, and algorithm customization machinery is GPU dispatch. But GPU dispatch already works, today, in a standalone library (`nvexec`), distributed through stdexec, available on vcpkg, requiring NVIDIA's own compiler. Adding `std::execution` to the C++ standard does not change this. NVIDIA's users need `nvcc` regardless. The standard cannot express `__device__`, `__global__`, `<<<>>>`, or `cudaStream_t`. The GPU integration lives outside the standard by necessity, and it will continue to live outside the standard no matter what WG21 decides. The cost of standardization falls on implementers and the committee; the use case that motivates much of the design complexity cannot benefit from it.
 
 ---
 
@@ -414,7 +408,7 @@ The desire for a universal model is understandable. The people pursuing it are t
 
 But the evidence presented in this paper suggests the direction may have gotten ahead of itself. The domain is genuinely difficult. It is no failure to acknowledge that and take more time.
 
-The asymmetry of risk favors caution. As shown in section 6, delaying `std::execution` costs nobody anything. The library is on vcpkg today. The ecosystem is not waiting. But if we mandate a design that proves wrong, the cost compounds for decades. The C++ standard still cannot connect to the internet, and the only networking paper in flight ([P3482](https://wg21.link/p3482)) is based on IETF TAPS, a framework that was never adopted outside a single proprietary implementation. The path forward for networking is not just delayed. It is pointing in a direction that has already failed.
+The asymmetry of risk favors caution. As shown in section 6, delaying `std::execution` costs little. The library is on vcpkg today. The ecosystem is not waiting. But if we mandate a design that proves wrong, the cost compounds for decades. The C++ standard still cannot connect to the internet, and the only networking paper in flight ([P3482](https://wg21.link/p3482)) is based on IETF TAPS, a framework that was never adopted outside a single proprietary implementation. The path forward for networking is not just delayed. It is pointing in a direction that has already failed.
 
 This paper asks the committee to consider, with open minds and good faith, whether the evidence supports the path we are on, or whether specialization with interoperation might serve the C++ community better.
 
