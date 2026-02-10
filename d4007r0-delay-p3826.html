@@ -229,10 +229,8 @@ border-left: 4px solid var(--primary);
 border-radius: 0 4px 4px 0;
 padding: var(--spacing-lg);
 margin: var(--spacing-lg) 0;
-overflow-x: auto;
 line-height: 1.55;
 tab-size: 4;
-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 pre code {
 background: none;
@@ -250,12 +248,20 @@ border: 1px solid var(--border);
 border-left: 4px solid var(--primary);
 border-radius: 0 4px 4px 0;
 margin: var(--spacing-lg) 0;
-overflow-x: auto;
 }
 div.sourceCode pre {
 border: none;
-box-shadow: none;
 margin: 0;
+}
+
+@media screen {
+pre {
+overflow-x: auto;
+box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+div.sourceCode {
+overflow-x: auto;
+}
 }
 
 pre > code.sourceCode {
@@ -650,9 +656,14 @@ h1, h2, h3, h4, h5, h6 {
 page-break-after: avoid;
 break-after: avoid;
 }
-pre, blockquote, table, figure {
+pre, blockquote, figure {
 page-break-inside: avoid;
 break-inside: avoid;
+}
+
+p {
+orphans: 3;
+widows: 3;
 }
 
 a[href^="http"]::after {
@@ -679,13 +690,9 @@ color: #333 !important;
 thead {
 background-color: #ddd !important;
 color: #000 !important;
--webkit-print-color-adjust: exact;
-print-color-adjust: exact;
 }
 tbody tr:nth-child(even) {
 background-color: #f5f5f5 !important;
--webkit-print-color-adjust: exact;
-print-color-adjust: exact;
 }
 }
 
@@ -705,8 +712,9 @@ font-size: 10pt;
 }
 }
 
+@media screen {
 
-@media screen and (min-width: 1200px) {
+@media (min-width: 1200px) {
 html {
 font-size: 16px;
 }
@@ -718,7 +726,7 @@ height: 70px;
 }
 }
 
-@media screen and (max-width: 1199px) and (min-width: 769px) {
+@media (max-width: 1199px) and (min-width: 769px) {
 :root {
 --content-width: 720px;
 }
@@ -727,7 +735,7 @@ font-size: 15px;
 }
 }
 
-@media screen and (max-width: 768px) {
+@media (max-width: 768px) {
 :root {
 --content-width: 100%;
 }
@@ -748,7 +756,7 @@ height: 55px;
 }
 }
 
-@media screen and (max-width: 600px) {
+@media (max-width: 600px) {
 html {
 font-size: 13px;
 }
@@ -788,6 +796,7 @@ animation: none !important;
 }
 html {
 scroll-behavior: auto;
+}
 }
 }
 
@@ -1088,12 +1097,29 @@ coroutine frame allocation when the frame’s lifetime is provably bounded
 by its caller. For I/O coroutines launched onto an execution context,
 the frame outlives its caller - the caller returns immediately after
 launching the operation, and the frame persists until the OS signals
-completion. The compiler cannot prove bounded lifetime when the lifetime
-depends on an external event; hence, HALO cannot apply in this common
-case, and allocation is mandatory. See Appendix A.1 for a deeper
-analysis and code example.</p>
+completion.
+<!-- JMB: This seems to be true if the calling code is *not* a
+     coroutine that will be resumed when the i/o operation completes.
+     --> <!-- JSL:
+@Josh, This what? Please make it clear what's true when.
+@Mungo, Also, what's the approximate relative frequence of the two
+and under what circomstances?
+JSL --> <!-- MG: Not sure I understand what Josh is saying here. --> The
+compiler cannot prove bounded lifetime when the lifetime depends on an
+external event; hence, HALO cannot apply in this common case, and
+allocation is mandatory. See Appendix A.1 for a deeper analysis and code
+example.</p>
 <p>It is also worth noting that HALO does nothing when the coroutine’s
-implementation is not visible.</p>
+implementation is not visible.
+<!-- DONE: JMB: "deeper" analysis, not full. -->
+<!-- DONE: JMB: It's also worth noting that HALO does nothing when the
+     coroutine's implementation is not visible. --> <!-- DONE: JSL:
+Absolso-F#$%ing-lutely say that.  OMFG!!!
+JSL --> <!-- JSL:
+Yes I realize that lots of this stuff is templates.  Can we please
+try to gustimate how often it might be that the co-routines impl.
+is not vissable?  What criteria affects that decision, etc.
+JSL --></p>
 <h3 id="operator-new-is-the-only-interception-point">3.3
 <code>operator new</code> Is the <em>Only</em> Interception Point</h3>
 <p>The senders/receivers facility, as defined today, provides exactly
@@ -1140,7 +1166,12 @@ the point of allocation.</p>
 Late</h3>
 <p>Context in the sender/receiver model in <code>std::execution</code>
 flows backward from receiver to sender. This creates an ordering gap for
-coroutine frame allocation:</p>
+coroutine frame allocation: <!-- JSL:
+The comments above are one two close to the longest statement.  Standard is
+two spaces if possible.  Also, I'd like to see consistent punctuation:
+1. Colon after first line.
+2. Capitalization and Period association honored consistently
+JSL --> <!-- MG: Sorry I don't understand this feedback --></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> my_coro<span class="op">();</span>                      <span class="co">// Coroutine returning a sender</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>                    <span class="co">// Step 1: operator new runs HERE</span></span>
@@ -1211,9 +1242,11 @@ two-tier model: the allocator is a creation-time concern passed at the
 call site, while the scheduler and stop token are connection-time
 concerns from the receiver. The promise’s <code>get_env()</code> exposes
 the stored allocator to child operations via <code>get_allocator</code>.
-That mechanism solves allocating the <em>initial</em> coroutine frame -
-a real contribution. But <em>propagating</em> the allocator through a
-chain of nested coroutine calls is the harder, unsolved problem.</p>
+That mechanism gives callers a standard way to allocate the initial
+coroutine frame with a chosen allocator - a valuable contribution to the
+design.</p>
+<p>Propagating that choice through a chain of nested coroutine calls,
+however, remains the harder and (as yet) <em>unsolved</em> problem.</p>
 <p>With standard containers, the allocator type is part of the type
 signature (<code>vector&lt;T, Alloc&gt;</code>), and
 <code>uses_allocator</code> construction gives generic code a standard
@@ -1239,22 +1272,23 @@ Solutions Target a Different Problem</h3>
 Algorithm Customization,” 2026-01-05) proposes important fixes for
 sender algorithm customisation - a real problem prompted by NB comment
 <a href="https://github.com/cplusplus/nbballot/issues/903">US 207</a>
-and resolved over three revisions. However, its five proposed solutions
-all target algorithm dispatch: which implementation of
-<code>then</code>, <code>let_value</code>, or <code>bulk</code> should
-run. Four of the five do not change when the allocator becomes
-available. The fifth - remove all <code>std::execution</code> - resolves
-the gap by deferral. See Appendix B.1 for a deeper analysis of each
-solution.</p>
+and resolved over three revisions of the proposal. However, its five
+proposed solutions all target algorithm dispatch - i.e., which
+implementation of <code>then</code>, <code>let_value</code>, or
+<code>bulk</code> should run. Four of the five do not change when the
+allocator becomes available. The fifth - remove all
+<code>std::execution</code> - resolves the gap by deferral. See Appendix
+B.1 for a deeper analysis of each solution.</p>
 <h3 id="abi-lock-in-makes-the-architectural-gap-permanent">4.5 ABI
 Lock-In Makes the Architectural Gap Permanent</h3>
 <p>Once standardised, the relationship between <code>operator new</code>
-and <code>connect()</code> becomes part of the ABI. Implementations will
-ship headers and binaries encoding this sequencing. A post-C++26 fix
-that changes the order in which allocation and connection occur would
-break binary compatibility with code compiled against the C++26
-specification. The window for fixing this architectural defect is
-now.</p>
+and <code>connect()</code> becomes part of the ABI. A fix would likely
+need <code>connect()</code> to propagate allocator context before the
+coroutine frame is allocated - a structural change to the sender
+protocol. If such a change proves ABI-incompatible, the alternative is a
+second async framework alongside the first. Neither outcome is
+impossible to manage, but both carry long-term costs that are worth
+weighing before the ABI boundary is set.</p>
 <hr />
 <h2 id="the-committees-own-record">5. The Committee’s Own Record</h2>
 <p>The committee’s own proceedings confirm that the allocator story is
@@ -1288,17 +1322,52 @@ instead of the one from the coroutine frame”</p>
 </table>
 <p>Attendance: 14. Outcome: strictly neutral.</p>
 </blockquote>
-<p>The entire room abstained to neutral. The author was directed to
+<p>The entire room abstained to neutral - an outcome consistent with the
+structural difficulty described in Section 4.3: without a mechanism to
+propagate allocator context through nested coroutine calls, the
+committee had no direction to endorse. The author was directed to
 explore preferred solutions with code examples.</p>
 <p>Two US national body comments confirm the same concern. US 255
-(LWG4335) states: “the used allocator type needs to be known when the
-coroutine is created. At that time the receiver isn’t known, yet.” LEWG
-polled at Kona (2025-11-06) and approved the direction (SF:4 / F:7 / N:0
-/ A:1 / SA:0, attendance 17), but wording remains outstanding. The sole
-A vote - from the task paper’s author - noted that using the receiver’s
-allocator “goes against the general behaviour of allocators.” US 253
-(LWG4333) requests arbitrary allocator support for the coroutine frame;
-wording is also still required.</p>
+(LWG4335) requests that <code>task</code> use the allocator from the
+receiver’s environment rather than the one supplied at coroutine
+creation. The NB comment itself acknowledges the difficulty: “the used
+allocator type needs to be known when the coroutine is created. At that
+time the receiver isn’t known, yet.” The core issue is that coroutine
+<code>operator new</code> overload resolution requires the allocator
+<em>type</em> at compile time - a runtime pointer to a
+<code>pmr::memory_resource</code> is not sufficient. At Kona
+(2025-11-06) LEWG polled the direction:</p>
+<blockquote>
+<p>“We approve the direction proposed in the NB comment: US 255-384
+[task.promise] Use allocator from receiver’s environment LWG4335 and ask
+for wording.”</p>
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4</td>
+<td>7</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Attendance: 17. Outcome: consensus in favour.</p>
+</blockquote>
+<p>The sole A vote - from the task paper’s author - noted that using the
+receiver’s allocator “goes against the general behaviour of allocators.”
+Wording remains outstanding. US 253 (LWG4333) requests arbitrary
+allocator support for the coroutine frame; wording is also still
+required.</p>
 <p>LWG 4356 (<code>connect()</code> should use
 <code>get_allocator(get_env(rcvr))</code>) confirms the gap has been
 filed as a specification defect - not merely an external complaint, but
@@ -1392,8 +1461,8 @@ current status.</p>
 <ul>
 <li><strong>The churn is accelerating, not slowing.</strong> The
 pre-Kona period produced 14 items - the highest volume - including
-Priority 1 safety defects. Two more papers appeared in the pre-London
-mailing with the London meeting still weeks away.</li>
+Priority 1 safety defects. Two more papers appeared in the January 2026
+mailing, with the London meeting still months away.</li>
 <li><strong>The severity has not decreased.</strong> The pre-Kona period
 includes Priority 1 LWG defects: a dangling-reference vulnerability in
 <code>transform_sender</code> (LWG 4368) and an unconstrained alias in
@@ -1419,7 +1488,10 @@ then send the revised paper to LWG for C++23 with priority 1”</p>
 <p>Recorded SA reasons included “maturity/readiness” and “Feels like
 ranges all over again. Needs maturity.” The same pattern of ongoing
 design changes - algorithm reworks, allocator timing unresolved,
-multiple LWG issues opened during review - is present again.</p>
+multiple LWG issues opened during review - is present again. The
+difference is that the concerns which were speculative in 2022 are now
+concrete: specific LWG issues, neutral committee polls, and unresolved
+NB comments document the gaps rather than merely anticipate them.</p>
 <hr />
 <h2 id="a-path-forward">6. A Path Forward</h2>
 <p>This paper asks the committee to consider whether the allocator
@@ -1598,8 +1670,10 @@ call chain looks like in practice:</p>
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_two<span class="op">(</span><span class="dv">42</span><span class="op">,</span> <span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span>         <span class="co">// Forward</span></span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> v<span class="op">;</span></span>
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Every coroutine requires variadic template arguments. Every coroutine
-must query and forward the allocator. Function signatures no longer
+<p>Every coroutine in the chain must accept the allocator argument
+(whether via variadic template parameters, defaulted arguments, or an
+explicit <code>allocator_arg</code> overload), query the current
+allocator, and forward it to each child. Function signatures no longer
 reflect algorithmic intent. Forgetting to forward the allocator silently
 breaks the chain. The allocator becomes viral - polluting interfaces
 throughout the codebase.</p>
@@ -1657,9 +1731,14 @@ illustrates where the gap opens.</p>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">// connect() can allocate the entire operation state</span></span>
 <span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">// tree using get_allocator(get_env(rcvr)).</span></span>
 <span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span></span></code></pre></div>
-<p>No allocation happens until <code>connect(sender, receiver)</code>.
-The receiver’s environment - including the allocator - is available for
-the entire operation state tree. There is no timing gap.</p>
+<p>The standard sender algorithms (<code>just</code>,
+<code>let_value</code>, etc.) build a lazy description; no operation
+state is allocated until <code>connect(sender, receiver)</code>, at
+which point the receiver’s environment - including the allocator - is
+available for the entire operation state tree. A custom sender
+theoretically <em>could</em> allocate earlier, but the protocol’s design
+defers allocation to <code>connect()</code> precisely so that the
+receiver’s allocator can be used. There is no timing gap.</p>
 <p><strong>Coroutine model:</strong></p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
@@ -1670,12 +1749,13 @@ the entire operation state tree. There is no timing gap.</p>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> process_request<span class="op">(</span>socket<span class="op">,</span> buf<span class="op">,</span> n<span class="op">);</span></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The coroutine frame is allocated during the function call - before
-any receiver exists. This is the precise moment the gap opens. The
-sender/receiver model’s allocator story is architecturally sound for
-non-coroutine use. The gap is introduced specifically by the coroutine
-integration, and <code>task&lt;T&gt;</code> - the usability layer that
-makes sender/receiver practical for I/O - is where the timing mismatch
-lives.</p>
+any receiver exists. This is the precise moment the gap opens. Any
+sender that allocates storage at creation time faces the same timing
+mismatch, but coroutines make it pervasive: <code>task&lt;T&gt;</code>
+always allocates a frame in <code>operator new</code> before any
+receiver exists. Since <code>task&lt;T&gt;</code> is the primary
+usability layer for writing sender/receiver code, the gap affects the
+most common authoring path.</p>
 <hr />
 <h2 id="appendix-b---counterarguments-examined">Appendix B -
 Counterarguments Examined</h2>
@@ -1686,9 +1766,14 @@ fixes for sender algorithm customisation, prompted by NB comment <a href="https:
 resolution went through three revisions before acceptance in January
 2026 - evidence of ongoing design evolution, but not itself an
 indictment.</p>
-<p>P3826 offers five solutions. All target algorithm dispatch - which
-implementation of <code>then</code>, <code>let_value</code>, or
-<code>bulk</code> should run. None address the allocator timing gap:</p>
+<p>P3826 targets algorithm dispatch and was never intended to address
+allocator timing. Because its Solution 4.5 restructures
+<code>transform_sender</code> to accept the receiver’s environment,
+however, a natural question is whether that change also closes the
+allocator gap. It does not - but examining why is instructive.</p>
+<p>P3826 offers five solutions. All target algorithm dispatch - i.e.,
+which implementation of <code>then</code>, <code>let_value</code>, or
+<code>bulk</code> should run:</p>
 <p><strong>Solution 4.1: Remove all
 <code>std::execution</code>.</strong> This would resolve the timing gap
 by deferral.</p>
@@ -1710,11 +1795,12 @@ take the receiver’s environment, changing information flow at
 dispatch. It does not change when the allocator becomes available - the
 receiver’s environment is still only queryable after
 <code>connect()</code>.</p>
-<p>The Kona discussion also revealed that removing sender algorithm
-customisation could preclude shipping the task type entirely, since the
-task type’s utility depends on the ability to customise algorithms. The
-allocator timing issue, the algorithm customisation issue, and the task
-type are architecturally intertwined.</p>
+<p>There was an assertion made during the Kona discussion that removing
+sender algorithm customisation could preclude shipping the task type
+entirely, since the task type’s utility depends on the ability to
+customise algorithms. This would imply that the allocator timing issue,
+the algorithm customisation issue, and the task type are architecturally
+intertwined.</p>
 <h3 id="b.2-why-await_transform-cannot-close-the-gap">B.2 Why
 <code>await_transform</code> Cannot Close the Gap</h3>
 <p>A reader familiar with C++ coroutine machinery may ask whether
@@ -1788,6 +1874,14 @@ call site in the chain must manually query and forward.</li>
 two-tier design solves only the first call in the chain. Production I/O
 code involves deep call chains, and the manual forwarding burden makes
 it impractical to maintain allocator discipline throughout.</p>
+<p>One possible direction would be to make the promise type a factory
+for child coroutine calls, allowing it to inject the allocator
+automatically. This would require either a new coroutine customisation
+point that fires before the child’s <code>operator new</code>, or a
+change to the evaluation order specified in [expr.await] so that frame
+allocation can be deferred until the parent’s promise has had a chance
+to supply the allocator. Either path is a language-level change to the
+coroutine specification, and would need time to design and validate.</p>
 <hr />
 <h2 id="appendix-c---committee-record">Appendix C - Committee
 Record</h2>
