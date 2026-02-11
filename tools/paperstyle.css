@@ -4,35 +4,9 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Local Font Faces - embedded in HTML via pandoc --embed-resources
-   Included weights: GSF 400 (body), 700 (bold/headings);
-                     JBM 400 (code), 500 (keywords/control flow).
-   Additional weights (GSF 500/600, JBM 600) can be added if needed.
+   Google Font Import - Inter + JetBrains Mono (with italics)
    -------------------------------------------------------------------------- */
-@font-face {
-  font-family: 'Google Sans Flex';
-  font-style: normal;
-  font-weight: 400;
-  src: url('fonts/GoogleSansFlex-Regular.ttf') format('truetype');
-}
-@font-face {
-  font-family: 'Google Sans Flex';
-  font-style: normal;
-  font-weight: 700;
-  src: url('fonts/GoogleSansFlex-Bold.ttf') format('truetype');
-}
-@font-face {
-  font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: 400;
-  src: url('fonts/JetBrainsMono-Regular.ttf') format('truetype');
-}
-@font-face {
-  font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: 500;
-  src: url('fonts/JetBrainsMono-Medium.ttf') format('truetype');
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap');
 
 /* --------------------------------------------------------------------------
    CSS Custom Properties (Theme Variables)
@@ -66,7 +40,7 @@
   --syntax-operator: #555555;
 
   /* Typography */
-  --font-body: "Google Sans Flex", "Google Sans", "Product Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Spacing */
@@ -134,11 +108,6 @@ body {
   align-items: center;
 }
 
-.cpp-alliance-logo img {
-  height: 70px;
-  width: auto;
-}
-
 .paper-header .header-text {
   font-family: var(--font-body);
   font-size: 0.95rem;
@@ -154,7 +123,6 @@ body {
    -------------------------------------------------------------------------- */
 .document-info {
   background: var(--bg-secondary);
-  border: 1px solid var(--border);
   border-left: 4px solid var(--primary);
   border-radius: 0 4px 4px 0;
   padding: var(--spacing-lg);
@@ -219,15 +187,15 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   font-size: 2rem;
-  color: var(--primary);
-  border-bottom: 3px solid var(--primary);
+  color: var(--text);
+  border-bottom: 3px solid var(--text-muted);
   padding-bottom: var(--spacing-sm);
   margin-top: 0;
 }
 
 h2 {
   font-size: 1.4rem;
-  color: var(--primary);
+  color: var(--text);
   border-bottom: 1px solid var(--border);
   padding-bottom: var(--spacing-xs);
 }
@@ -258,7 +226,7 @@ p {
 }
 
 strong {
-  font-weight: 700;
+  font-weight: 537;
   color: var(--text);
 }
 
@@ -310,7 +278,6 @@ code {
    -------------------------------------------------------------------------- */
 pre {
   background-color: var(--bg-code);
-  border: 1px solid var(--border);
   border-left: 4px solid var(--primary);
   border-radius: 0 4px 4px 0;
   padding: var(--spacing-lg);
@@ -339,7 +306,6 @@ pre code {
    -------------------------------------------------------------------------- */
 div.sourceCode {
   background-color: var(--bg-code);
-  border: 1px solid var(--border);
   border-left: 4px solid var(--primary);
   border-radius: 0 4px 4px 0;
   margin: var(--spacing-lg) 0;
@@ -587,7 +553,7 @@ table {
 }
 
 thead {
-  background-color: var(--primary);
+  background-color: var(--text-secondary);
   color: white;
 }
 
@@ -684,7 +650,6 @@ figcaption {
    -------------------------------------------------------------------------- */
 .toc {
   background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
   border-radius: 4px;
   padding: var(--spacing-lg);
   margin: var(--spacing-xl) 0;
@@ -693,10 +658,10 @@ figcaption {
 .toc-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--text-secondary);
   margin: 0 0 var(--spacing-md) 0;
   padding-bottom: var(--spacing-sm);
-  border-bottom: 2px solid var(--primary);
+  border-bottom: 2px solid var(--text-muted);
 }
 
 .toc ul {
@@ -738,7 +703,6 @@ figcaption {
    -------------------------------------------------------------------------- */
 .wording {
   background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
   border-radius: 4px;
   padding: var(--spacing-lg);
   margin: var(--spacing-lg) 0;
@@ -858,14 +822,6 @@ del .variable {
     widows: 3;
   }
 
-  /* Show link URLs in print (useful for physical printouts) */
-  a[href^="http"]::after {
-    content: " (" attr(href) ")";
-    font-size: 0.8em;
-    color: #666;
-    word-break: break-all;
-  }
-
   /* Hide non-essential elements */
   .no-print {
     display: none !important;
@@ -890,9 +846,6 @@ del .variable {
     -webkit-print-color-adjust: exact;
   }
 
-  tbody tr:nth-child(even) {
-    background-color: #f5f5f5 !important;
-  }
 }
 
 /* --------------------------------------------------------------------------
@@ -904,14 +857,14 @@ del .variable {
 
   @top-center {
     content: "WG21 Proposal";
-    font-family: "Google Sans Flex", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 10pt;
     color: #666;
   }
 
   @bottom-center {
     content: counter(page);
-    font-family: "Google Sans Flex", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 10pt;
   }
 }
