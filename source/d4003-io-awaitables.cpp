@@ -59,7 +59,7 @@ concept Executor =
                 execution_context>;
         { ce.on_work_started() } noexcept;
         { ce.on_work_finished() } noexcept;
-        { ce.dispatch(h) };
+        { ce.dispatch(h) } -> std::same_as<std::coroutine_handle<>>;
         { ce.post(h) };
     };
 
@@ -75,7 +75,7 @@ struct executor_vtable
     void (*on_work_started)(void const*) noexcept;
     void (*on_work_finished)(void const*) noexcept;
     void (*post)(void const*, std::coroutine_handle<>);
-    void (*dispatch)(void const*, std::coroutine_handle<>);
+    std::coroutine_handle<> (*dispatch)(void const*, std::coroutine_handle<>);
     bool (*equals)(void const*, void const*) noexcept;
 };
 
@@ -93,8 +93,8 @@ inline constexpr executor_vtable vtable_for = {
     [](void const* p, std::coroutine_handle<> h) {
         static_cast<Ex const*>(p)->post(h);
     },
-    [](void const* p, std::coroutine_handle<> h) {
-        static_cast<Ex const*>(p)->dispatch(h);
+    [](void const* p, std::coroutine_handle<> h) -> std::coroutine_handle<> {
+        return static_cast<Ex const*>(p)->dispatch(h);
     },
     [](void const* a, void const* b) noexcept -> bool {
         return *static_cast<Ex const*>(a) == *static_cast<Ex const*>(b);
@@ -126,7 +126,7 @@ public:
     execution_context& context() const noexcept { return vt_->context(ex_); }
     void on_work_started() const noexcept { vt_->on_work_started(ex_); }
     void on_work_finished() const noexcept { vt_->on_work_finished(ex_); }
-    void dispatch(coro h) const { vt_->dispatch(ex_, h); }
+    coro dispatch(coro h) const { return vt_->dispatch(ex_, h); }
     void post(coro h) const { vt_->post(ex_, h); }
 
     bool operator==(executor_ref const& other) const noexcept
@@ -188,33 +188,13 @@ concept IoAwaitable =
     };
 
 // ============================================================
-// IoAwaitableTask concept
+// IoRunnable concept
 // ============================================================
 
 template<typename T>
-concept IoAwaitableTask =
+concept IoRunnable =
     IoAwaitable<T> &&
     requires { typename T::promise_type; } &&
-    requires(
-        typename T::promise_type& p,
-        typename T::promise_type const& cp,
-        io_env const& env,
-        executor_ref ex,
-        coro cont)
-    {
-        { p.set_environment(env) } noexcept;
-        { p.set_continuation(cont, ex) } noexcept;
-        { cp.environment() } noexcept -> std::same_as<io_env const&>;
-        { cp.complete() } noexcept -> std::same_as<coro>;
-    };
-
-// ============================================================
-// IoLaunchableTask concept
-// ============================================================
-
-template<typename T>
-concept IoLaunchableTask =
-    IoAwaitableTask<T> &&
     requires(T& t, T const& ct, typename T::promise_type const& cp)
     {
         { ct.handle() } noexcept
@@ -235,8 +215,7 @@ template<typename Derived>
 class io_awaitable_support
 {
     io_env const* env_ = nullptr;
-    executor_ref caller_ex_;
-    mutable coro cont_{nullptr};
+    mutable coro cont_{std::noop_coroutine()};
 
     static constexpr std::size_t ptr_alignment = alignof(void*);
 
@@ -279,24 +258,18 @@ public:
 
     ~io_awaitable_support()
     {
-        if (cont_)
+        if(cont_ != std::noop_coroutine())
             cont_.destroy();
     }
 
-    void set_continuation(coro cont, executor_ref caller_ex) noexcept
+    void set_continuation(coro cont) noexcept
     {
         cont_ = cont;
-        caller_ex_ = caller_ex;
     }
 
-    coro complete() const noexcept
+    coro continuation() const noexcept
     {
-        if(!cont_)
-            return std::noop_coroutine();
-        if(env_->executor == caller_ex_)
-            return std::exchange(cont_, nullptr);
-        caller_ex_.dispatch(std::exchange(cont_, nullptr));
-        return std::noop_coroutine();
+        return std::exchange(cont_, std::noop_coroutine());
     }
 
     void set_environment(io_env const& env) noexcept
@@ -338,7 +311,7 @@ public:
 };
 
 // ============================================================
-// task<T> — lazy coroutine task satisfying IoLaunchableTask
+// task<T> — lazy coroutine task satisfying IoRunnable
 // ============================================================
 
 namespace detail {
@@ -408,7 +381,7 @@ struct [[nodiscard]] task
 
                 coro await_suspend(coro) const noexcept
                 {
-                    return p_->complete();
+                    return p_->continuation();
                 }
 
                 void await_resume() const noexcept {}
@@ -482,7 +455,7 @@ struct [[nodiscard]] task
 
     coro await_suspend(coro cont, io_env const& env)
     {
-        h_.promise().set_continuation(cont, env.executor);
+        h_.promise().set_continuation(cont);
         h_.promise().set_environment(env);
         return h_;
     }
@@ -522,11 +495,9 @@ private:
 // ============================================================
 
 static_assert(IoAwaitable<task<int>>);
-static_assert(IoAwaitableTask<task<int>>);
-static_assert(IoLaunchableTask<task<int>>);
+static_assert(IoRunnable<task<int>>);
 static_assert(IoAwaitable<task<>>);
-static_assert(IoAwaitableTask<task<>>);
-static_assert(IoLaunchableTask<task<>>);
+static_assert(IoRunnable<task<>>);
 
 // ============================================================
 // inline_executor — trivial synchronous executor for demo
@@ -542,9 +513,9 @@ struct inline_executor
     void on_work_started() const noexcept {}
     void on_work_finished() const noexcept {}
 
-    void dispatch(std::coroutine_handle<> h) const
+    std::coroutine_handle<> dispatch(std::coroutine_handle<> h) const
     {
-        h.resume();
+        return h;
     }
 
     void post(std::coroutine_handle<> h) const
@@ -564,13 +535,13 @@ static_assert(Executor<inline_executor>);
 // Minimal run_sync — synchronous launcher for demonstration
 // ============================================================
 
-template<IoLaunchableTask Task>
+template<IoRunnable Task>
 auto run_sync(executor_ref ex, std::stop_token token, Task t)
 {
     auto h = t.handle();
     auto& p = h.promise();
     p.set_environment(io_env{ex, token});
-    // No continuation — this is the root
+    // No continuation — cont_ defaults to noop_coroutine()
     t.release();
     h.resume();
 
@@ -581,7 +552,7 @@ auto run_sync(executor_ref ex, std::stop_token token, Task t)
         return p.result();
 }
 
-template<IoLaunchableTask Task>
+template<IoRunnable Task>
 auto run_sync(executor_ref ex, Task t)
 {
     return run_sync(ex, std::stop_token{}, std::move(t));
