@@ -887,8 +887,9 @@ outline: none;
   <li><a href="#the-gap-is-structural" id="toc-the-gap-is-structural">4.1 The Gap Is Structural</a></li>
   <li><a href="#await_transform-cannot-help" id="toc-await_transform-cannot-help">4.2 <code>await_transform</code>
   Cannot Help</a></li>
-  <li><a href="#the-two-tier-design-cannot-propagate-allocators" id="toc-the-two-tier-design-cannot-propagate-allocators">4.3 The
-  Two-Tier Design Cannot Propagate Allocators</a></li>
+  <li><a href="#the-receivers-allocator-cannot-reach-coroutine-frame-allocation" id="toc-the-receivers-allocator-cannot-reach-coroutine-frame-allocation">4.3
+  The Receiver’s Allocator Cannot Reach Coroutine Frame
+  Allocation</a></li>
   <li><a href="#p3826r3s-solutions-target-a-different-problem" id="toc-p3826r3s-solutions-target-a-different-problem">4.4 P3826R3’s
   Solutions Target a Different Problem</a></li>
   <li><a href="#abi-lock-in-makes-the-architectural-gap-permanent" id="toc-abi-lock-in-makes-the-architectural-gap-permanent">4.5 ABI
@@ -909,8 +910,8 @@ outline: none;
   Avoiding API Lock-in</a></li>
   <li><a href="#what-deferral-means" id="toc-what-deferral-means">6.2
   What Deferral Means</a></li>
-  <li><a href="#who-bears-the-cost" id="toc-who-bears-the-cost">6.3 Who
-  Bears the Cost</a></li>
+  <li><a href="#trade-offs-of-the-current-timeline" id="toc-trade-offs-of-the-current-timeline">6.3 Trade-offs of the
+  Current Timeline</a></li>
   <li><a href="#io-is-in-scope" id="toc-io-is-in-scope">6.4 I/O Is in
   Scope</a></li>
   </ul></li>
@@ -984,11 +985,12 @@ concurrency, composable task graphs, and a clean separation of work
 description from execution policy. However, a fundamental allocator
 sequencing gap prevents coroutine-based I/O from using stateful
 allocators: <code>operator new</code> runs before the receiver exists,
-so the allocator arrives too late. This gap is architectural, not a
-missing feature that can be extended stably without destabilising the
-API. We recommend deferring <code>std::execution</code> to C++29, or
-alternatively publishing it as a Technical Specification, so that the
-allocator story can be resolved before the ABI is frozen.</p>
+so the allocator arrives too late. Because the gap arises from the
+interaction between coroutine evaluation order and the sender/receiver
+protocol, closing it may require changes to the API. We recommend
+deferring <code>std::execution</code> to C++29, or alternatively
+publishing it as a Technical Specification, so that the allocator story
+can be resolved before the ABI is frozen.</p>
 <hr />
 <h2 id="introduction">1. Introduction</h2>
 <p><a href="https://wg21.link/p2300r10">P2300R10</a> (“std::execution”)
@@ -1024,8 +1026,8 @@ use case in scope (see Section 6.4); the standard must accommodate
 it.</p>
 <p>The question is whether the gap can be closed without either (1) a
 breaking API change or (2) leaving the current interface as vestigial
-cruft. Section 4 examines each proposed escape route; unfortunately, the
-authors have been unable to find a way to close this gap.</p>
+cruft. Section 4 examines each proposed escape route; as of this
+writing, none appears to close the gap.</p>
 <p>The allocator sequencing gap is not a missing feature that can be
 added later; it is architectural: <code>operator new</code> runs before
 <code>connect()</code>, and no library-level change can alter that
@@ -1184,7 +1186,7 @@ forward the allocator silently breaks the chain. See Appendix A.2 for
 the complete propagation example.</p>
 <p>Allocator propagation is admittedly a general challenge in C++, not
 unique to sender/receiver. However, the standard library addresses it
-for containers through <code>uses_allocator</code> construction and
+for containers through <em>uses_allocator</em> construction and
 <code>scoped_allocator_adaptor</code>, which give generic code a uniform
 propagation path. No equivalent exists for coroutine frames, and the
 ordering constraint described in Section 3.5 - the receiver arrives
@@ -1264,8 +1266,8 @@ into child coroutine calls, eliminating explicit
 <code>task&lt;T&gt;</code>, the child’s frame has already been allocated
 without the parent’s allocator. See Appendix B.2 for a deeper
 evaluation-order analysis.</p>
-<h3 id="the-two-tier-design-cannot-propagate-allocators">4.3 The
-Two-Tier Design Cannot Propagate Allocators</h3>
+<h3 id="the-receivers-allocator-cannot-reach-coroutine-frame-allocation">4.3
+The Receiver’s Allocator Cannot Reach Coroutine Frame Allocation</h3>
 <p><a href="https://wg21.link/p3552r3">P3552R3</a> establishes a
 two-tier model: the allocator is a creation-time concern passed at the
 call site, while the scheduler and stop token are connection-time
@@ -1276,25 +1278,29 @@ coroutine frame with a chosen allocator - a valuable contribution to the
 design.</p>
 <p>Propagating that choice through a chain of nested coroutine calls,
 however, remains the harder and (as yet) <em>unsolved</em> problem.</p>
+<p>In <code>co_await child_coro(args...)</code>, the child’s
+<code>operator new</code> fires before <code>co_await</code> processing
+begins - before the parent’s promise has any opportunity to intervene.
+The receiver’s allocator, delivered through the S/R protocol at
+<code>connect()</code>, is structurally unreachable at the point of
+child frame allocation. A caller can work around this by passing the
+allocator manually via <code>std::allocator_arg</code>, but that
+bypasses the S/R protocol entirely: the allocator no longer comes from
+the receiver’s environment, and every intermediate coroutine in the
+chain must accept, query, and forward it explicitly - a manual
+forwarding burden that grows with call depth.</p>
 <p>With standard containers, the allocator type is part of the type
 signature (<code>vector&lt;T, Alloc&gt;</code>), and
-<code>uses_allocator</code> construction gives generic code a standard
-way to propagate the allocator through nested construction. With
-coroutines, the allocator is consumed inside <code>operator new</code>
-(which runs before the receiver exists) and the coroutine’s return type
+<em>uses_allocator</em> construction gives generic code a standard way
+to propagate the allocator through nested construction. With coroutines,
+the allocator is consumed inside <code>operator new</code> (which runs
+before the receiver exists) and the coroutine’s return type
 (<code>task&lt;T&gt;</code>) does not carry the allocator type. There is
-no <code>uses_allocator</code> equivalent for coroutine frame
-allocation. Nor is it clear that one could be created: any indirection
-layer that wraps a coroutine invocation risks defeating Heap Allocation
-eLision Optimisation (HALO), because the compiler must see the coroutine
-call directly at the call site.</p>
-<p>The propagation burden is compounded by the calling convention: every
-call site must pass both <code>std::allocator_arg</code> and the
-allocator object as leading arguments. A coroutine that naturally takes
-a single argument becomes a three-parameter call, two-thirds of which is
-allocator plumbing rather than application logic - creating strong
-pressure to simply omit the allocator and fall back to the global
-heap.</p>
+no <em>uses_allocator</em> equivalent for coroutine frame allocation.
+Nor is it clear that one could be created: any indirection layer that
+wraps a coroutine invocation risks defeating Heap Allocation eLision
+Optimisation (HALO), because the compiler must see the coroutine call
+directly at the call site.</p>
 <h3 id="p3826r3s-solutions-target-a-different-problem">4.4 P3826R3’s
 Solutions Target a Different Problem</h3>
 <p><a href="https://wg21.link/p3826r3">P3826R3</a> (“Fix Sender
@@ -1403,9 +1409,8 @@ filed as a specification defect - not merely an external complaint, but
 a committee-level acknowledgement of the sequencing problem.</p>
 <h3 id="post-approval-changes">5.2 Post-Approval Changes</h3>
 <p>The volume of papers written to fix, rework, or complete
-<code>std::execution</code> after its approval for C++26 is
-extraordinary. Mature designs do not require this level of post-approval
-remediation.</p>
+<code>std::execution</code> after its approval for C++26 is substantial,
+and reflects the feature’s scope and ambition.</p>
 <table style="width:100%;">
 <colgroup>
 <col style="width: 33%" />
@@ -1515,12 +1520,12 @@ then send the revised paper to LWG for C++23 with priority 1”</p>
 <p>SF:15 / F:9 / N:1 / A:3 / SA:6 (Attendance: 39)</p>
 </blockquote>
 <p>Recorded SA reasons included “maturity/readiness” and “Feels like
-ranges all over again. Needs maturity.” The same pattern of ongoing
-design changes - algorithm reworks, allocator sequencing unresolved,
-multiple LWG issues opened during review - is present again. The
+ranges all over again. Needs maturity.” Some of the same categories of
+open work - algorithm reworks, allocator sequencing unresolved, LWG
+issues opened during review - are visible in the current cycle. The
 difference is that the concerns which were speculative in 2022 are now
-concrete: specific LWG issues, neutral committee polls, and unresolved
-NB comments document the gaps rather than merely anticipate them.</p>
+documented in specific LWG issues, committee polls, and unresolved NB
+comments.</p>
 <hr />
 <h2 id="a-path-forward">6. A Path Forward</h2>
 <p>This paper asks the committee to consider whether the allocator
@@ -1546,16 +1551,19 @@ committee does not freeze the ABI until the remaining architectural gaps
 - allocator sequencing, allocator propagation, and the interaction with
 coroutine task types - are resolved.</p>
 <p>Deferral is not failure. The committee deferred trivial relocation to
-C++29 because open design questions remained; the result was a stronger
-proposal built on the foundations already laid. The same precedent
-applies here: the P2300 authors’ investment is preserved in full, and
-production-quality implementations (stdexec, NVIDIA CCCL, libunifex,
-Folly) remain available to users regardless of the standardisation
-timeline. A Technical Specification is a further option, though existing
-implementations already serve that role in practice.</p>
-<h3 id="who-bears-the-cost">6.3 Who Bears the Cost</h3>
-<p>The urgency question deserves an honest answer: who is harmed by
-deferral, and who is harmed by premature standardisation?</p>
+C++29 because open design questions remained; the expectation is that
+deferral will yield a stronger proposal, built on the foundations
+already laid. The same precedent applies here: the P2300 authors’
+investment is preserved in full, and production-quality implementations
+(stdexec, NVIDIA CCCL, libunifex, Folly) remain available to users
+regardless of the standardisation timeline. A Technical Specification is
+a further option, though existing implementations already serve that
+role in practice.</p>
+<h3 id="trade-offs-of-the-current-timeline">6.3 Trade-offs of the
+Current Timeline</h3>
+<p>The urgency question deserves an honest answer: what are the costs of
+deferral, and what are the costs of standardising before the allocator
+story is complete?</p>
 <p>Organisations building on <code>std::execution</code> today are not
 blocked by the absence of an IS specification - they build against
 concrete library implementations. Unlike language features, non-standard
@@ -1577,8 +1585,8 @@ networking; rather, it is an observation that the current timeline
 favours constituencies that do not need allocator propagation (GPU
 dispatch, CPU-bound parallelism) over the constituency that does
 (I/O-bound networking). Deferral preserves optionality for everyone;
-premature standardisation imposes a concrete cost on the use case with
-the broadest demonstrated demand.</p>
+standardising before the allocator story is complete would impose a
+concrete cost on the use case with the broadest demonstrated demand.</p>
 <h3 id="io-is-in-scope">6.4 I/O Is in Scope</h3>
 <p>A likely response is that <code>std::execution</code> is for
 structured concurrency and parallelism, and networking is a separate
@@ -1628,8 +1636,9 @@ design continues to evolve: <a href="https://wg21.link/p3826r3">P3826R3</a> prop
 architectural changes to <code>transform_sender</code>, removes early
 customization entirely, and restructures the relationship between
 <code>continues_on</code> and <code>schedule_from</code>. This level of
-active change is healthy for a maturing design, but it signals that the
-work is not yet finished.</p>
+active change reflects a design that is still evolving, and suggests
+there may be value in allowing that evolution to complete before
+freezing the ABI.</p>
 <p>If <code>std::execution</code> ships with C++26 but cannot serve
 coroutine-based I/O without workarounds, the committee risks
 standardising a framework that works for CPU-bound parallelism and GPU
@@ -1980,8 +1989,9 @@ then send the revised paper to LWG for C++23 with priority 1”</p>
 <p>Recorded SA reasons included: “maturity/readiness/tag_invoke and the
 numerous change in the last few meetings,” “Feels like ranges all over
 again. Needs maturity,” and “Too few reviews from embedded people.”</p>
-<p>The C++23 deferral happened because of maturity concerns. The same
-pattern of ongoing design changes is present again.</p>
+<p>The C++23 deferral happened because of maturity concerns. Some of
+those same categories of open work remain visible in the current
+cycle.</p>
 <h3 id="c.3-sg4-networking-mandate">C.3 SG4 Networking Mandate</h3>
 <p>SG4 polled at Kona (November 2023) on <a href="https://wg21.link/p2762r2">P2762R2</a>:</p>
 <blockquote>
@@ -2070,8 +2080,7 @@ Approval and Forwarding</h3>
 </table>
 <p>Attendance: 23.</p>
 </blockquote>
-<p>Six neutral votes matching the number of favourable votes is a
-notably soft result for a design approval poll.</p>
+<p>The neutral votes matched the favourable votes in number.</p>
 <p>The forwarding poll (LEWG, 2025-05-06):</p>
 <blockquote>
 <p>“Forward P3552R1 with the action items discussed to LWG for
@@ -2113,7 +2122,8 @@ environment, at least, if the receiver’s environment supports a
 get_allocator query. Supporting the receiver’s allocator isn’t always
 possible: the used allocator type needs to be known when the coroutine
 is created. At that time the receiver isn’t known, yet.”</p>
-<p>This is D4007’s thesis stated as a US national body comment.</p>
+<p>The NB comment identifies the same allocator sequencing constraint
+that this paper examines.</p>
 <p>US 253 (<a href="https://github.com/cplusplus/nbballot/issues/961">cplusplus/nbballot#961</a>,
 LWG4333): “Allow use of arbitrary allocators for coroutine frame.”
 Status: needs wording.</p>
@@ -2196,11 +2206,10 @@ mandate receiver completion-signals.</li>
 <code>get_allocator(get_env(rcvr))</code> - directly relevant to the
 allocator sequencing issue.</li>
 </ul>
-<p>Priority 1 issues in an approved feature are a concrete signal that
-the specification has not yet stabilised. These are not obscure corner
-cases but defects in core mechanisms (<code>connect</code> and
-<code>transform_sender</code>) that every sender/receiver program
-exercises.</p>
+<p>Priority 1 issues in an approved feature indicate that the
+specification is still stabilising. Both affect core mechanisms
+(<code>connect</code> and <code>transform_sender</code>) that most
+sender/receiver programs exercise.</p>
 <hr />
 <h2 id="appendix-d---post-approval-modification-catalogue">Appendix D -
 Post-Approval Modification Catalogue</h2>
