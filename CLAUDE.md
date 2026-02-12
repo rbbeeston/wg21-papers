@@ -52,29 +52,31 @@ Rules for all work on WG21 papers in this repository.
     modifies to avoid ambiguity.
     e.g. "provides only one mechanism" not "only provides one
     mechanism"
+25. Do not use contractions (it's, they're, don't, etc.) in formal
+    papers. Use the expanded form
 
 ## Code Examples
 
-25. Consistent comment style within a code block - either all
+26. Consistent comment style within a code block - either all
     comments are sentences (capitalized, with terminating punctuation)
     or all are fragments (lowercase, no period). Do not mix
-26. Consistent capitalization in groups of code comments that
+27. Consistent capitalization in groups of code comments that
     summarize arithmetic or data
-27. Align trailing comment columns when consecutive lines have
+28. Align trailing comment columns when consecutive lines have
     trailing comments
 
 ## Structure
 
-28. Sections with subsections should have at least one introductory
+29. Sections with subsections should have at least one introductory
     sentence between the section heading and the first subsection
     heading - do not leave an empty section heading
 
 ## Tone
 
-29. Do not present options as predetermined conclusions. When
+30. Do not present options as predetermined conclusions. When
     recommending alternatives to a committee, present them as options
     to contemplate, not dictated outcomes
-30. Avoid politically charged comparisons - do not invoke other
+31. Avoid politically charged comparisons - do not invoke other
     contentious features as analogies unless the comparison is
     structurally precise. If the structures being compared are
     fundamentally different, the analogy will be perceived as

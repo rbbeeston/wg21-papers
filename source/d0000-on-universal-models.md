@@ -207,7 +207,7 @@ At least 10 companion papers are actively fixing, extending, and patching `std::
 
 - [P3481](https://wg21.link/p3481) "std::execution::bulk() issues": Explicitly GPU-focused: "For GPUs is important to have a version of `bulk` that ensures one execution agent per iteration." Fundamental API gaps remain: "the following are unclear: Can `bulk` invoke the given functor concurrently? Can `bulk` create decayed copies?"
 
-- [P3552](https://wg21.link/p3552) "Add a Coroutine Task Type" (Kühl, Nadolski): `std::execution` shipped in C++26 without a coroutine task type, the primary way users are expected to interact with it. The paper lists 12 unsolved design objectives.
+- [P3552](https://wg21.link/p3552) "Add a Coroutine Task Type" (Kühl, Nadolski): Voted into C++26 at Sofia (77-11-29), but with documented open design issues. [P3801R0](https://wg21.link/p3801) raises concerns about stack-overflow risk in iterative `co_await` patterns, surprising parameter lifetimes, and dangling-reference hazards. [P3796R1](https://wg21.link/p3796) collects additional unresolved issues including stop-token and allocator semantics.
 
 - [P3557](https://wg21.link/p3557) "High-Quality Sender Diagnostics" (Niebler): Sender misuse produces "megabytes of incomprehensible diagnostics." The paper "exposed several bugs in the Working Draft for C++26."
 
@@ -215,7 +215,7 @@ At least 10 companion papers are actively fixing, extending, and patching `std::
 
 - [P3826](https://wg21.link/p3826) "Fix Sender Algorithm Customization" (Niebler): Predecessor papers [P2999R3](https://wg21.link/p2999r3) and [P3303R1](https://wg21.link/p3303r1) address domain-based algorithm dispatch for GPU backends.
 
-Of these 10 papers, zero are about networking. At least four are explicitly GPU/parallel focused (P2079, P3481, P3564, P3826). The rest fix fundamental design deficiencies: lifetimes, exception safety, diagnostics, memory bloat, and a missing task type. A framework with this many open design questions is not ready to be declared universal.
+Of these 10 papers, zero are about networking. At least four are explicitly GPU/parallel focused (P2079, P3481, P3564, P3826). The rest fix fundamental design deficiencies: lifetimes, exception safety, diagnostics, memory bloat, and a task type whose own design is still contested. A framework with this many open design questions is not ready to be declared universal.
 
 #### 3.5.6 The Design Space Remains Open
 
@@ -404,13 +404,25 @@ None of these are valid C++. Code that uses them cannot be compiled by GCC, MSVC
 
 ## 7. Conclusion
 
-The desire for a universal model is understandable. The people pursuing it are talented and well-intentioned. The work they have done has genuine value.
+Every genuine universal model examined in this paper shares two properties: narrow scope and practice-first emergence. TCP/IP, IEEE 754, iterators, RAII, and allocators each capture one essential property and leave everything else to the user. None was designed top-down by committee and then mandated into existence. Each proved itself through broad voluntary adoption before standardization codified the outcome.
 
-But the evidence presented in this paper suggests the direction may have gotten ahead of itself. The domain is genuinely difficult. It is no failure to acknowledge that and take more time.
+`std::execution` follows the opposite pattern. The design is wide, the companion papers reveal fundamental open questions, and the framework ships in C++26 with a contested coroutine task type ([P3801](https://wg21.link/p3801), [P3796](https://wg21.link/p3796)), without type-erased senders, and without the networking use case that started the executor discussion a decade ago. The domain is genuinely difficult. Acknowledging that difficulty and taking more time is not a failure - it is prudent engineering.
 
-The asymmetry of risk favors caution. As shown in section 6, delaying `std::execution` costs little. The library is on vcpkg today. The ecosystem is not waiting. But if we mandate a design that proves wrong, the cost compounds for decades. The C++ standard still cannot connect to the internet, and the only networking paper in flight ([P3482](https://wg21.link/p3482)) is based on IETF TAPS, a framework that was never adopted outside a single proprietary implementation. The path forward for networking is not just delayed. It is pointing in a direction that has already failed.
+The asymmetry of risk favors caution. Deferring `std::execution` costs nothing: the library is on vcpkg today, and the ecosystem is not waiting. Mandating a design that proves wrong costs decades of ABI lock-in, implementer burden, and foreclosed alternatives.
 
-This paper asks the committee to consider, with open minds and good faith, whether the evidence supports the path we are on, or whether specialization with interoperation might serve the C++ community better.
+### Recommendations
+
+This paper respectfully asks the committee to consider the following:
+
+1. **Defer `std::execution` from C++26.** Offer it as a standalone library while the 10+ companion papers resolve open design questions. Standardize when deployment experience - across domains, not only GPU and parallel computing - justifies the commitment.
+
+2. **Prioritize networking.** Every other major language ships socket-level I/O in its standard library. C++ still cannot connect to the internet. Networking is a more broadly needed capability than heterogeneous algorithm dispatch, and it has been waiting longer.
+
+3. **Let execution models compete.** The ecosystem already has multiple production-proven models (Asio, folly, Seastar, TooManyCooks, Taskflow, and others). Rather than picking a winner, let voluntary adoption identify which abstractions deserve standardization - the same process that produced TCP/IP, IEEE 754, and the STL.
+
+4. **Standardize narrow interop contracts.** Define a minimal spanning layer through which different execution models can interoperate, rather than mandating a single wide framework. Narrow contracts enable broad ecosystems. Wide abstractions constrain them.
+
+The people behind `std::execution` are talented, and their work contains genuine insights about structured concurrency. The question is not quality but timing and scope. Deferral gives the design room to mature, to prove itself across domains, and to earn the voluntary adoption that every successful universal model in computing history demonstrated before standardization. That outcome would serve both the authors and the C++ community better than premature commitment.
 
 ---
 

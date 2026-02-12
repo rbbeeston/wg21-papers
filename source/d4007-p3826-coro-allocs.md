@@ -1,5 +1,5 @@
 ---
-title: "`std::execution` Needs More Time"
+title: "Does `std::execution` Need More Time?"
 document: D4007R0
 date: 2026-02-02
 reply-to:
@@ -24,9 +24,10 @@ allocators: `operator new` runs before the receiver exists, so
 the allocator arrives too late. Because the gap arises from
 the interaction between coroutine evaluation order and the
 sender/receiver protocol, closing it may require changes to
-the API. We recommend
-deferring `std::execution` to C++29, or alternatively
-publishing it as a Technical Specification, so that the
+the API. Unless a backward-compatible solution addressing
+this gap can be demonstrated, we recommend deferring
+`std::execution` to C++29 - and perhaps separately
+publishing it as an evolvable white paper - so that the
 allocator story can be resolved before the ABI is frozen.
 
 ---
@@ -57,10 +58,11 @@ The concern this paper raises is narrower than a general
 objection: `std::execution` works well for its primary use
 cases. The gap arises when a sender pipeline must select a
 custom allocation strategy. The allocator must be available
-*before* construction, but the sender/receiver model provides
-it only after the frame has already been created.
+*before* the coroutine frame is constructed, but the
+sender/receiver model provides the allocator only after the
+frame has already been created.
 
-Coroutine-based I/O makes this gap acute. Asynchronous
+Coroutine-based I/O causes this gap to become acute. Asynchronous
 execution makes optimising away the coroutine frame allocation
 unlikely or impossible, and the impact of multiple extra
 allocations per I/O operation can be disastrous. The committee
@@ -72,11 +74,10 @@ The question is whether the gap can be closed without either
 as vestigial cruft. Section 4 examines each proposed escape
 route; as of this writing, none appears to close the gap.
 
-The allocator sequencing gap is not a missing feature that can be
-added later; it is architectural: `operator new` runs before
-`connect()`, and no
-library-level change can alter that sequencing without
-destabilising the API. Discovering this gap before standardisation
+The allocator sequencing gap is architectural, not a missing
+feature that can be added later: `operator new` runs before
+`connect()`, and no library-level change known to the authors
+can alter that sequencing without destabilising the API. Discovering this gap before standardisation
 is fortunate, not a failure. The feature's size and complexity
 make thorough review genuinely difficult, and it is not
 surprising that a gap visible only in the I/O use case was not
@@ -98,9 +99,14 @@ perform I/O:
 task<void> handle_client(tcp_socket socket)
 {
     char buf[1024];
-    auto [ec, n] = co_await socket.async_read(buf);
-    if (n > 0)
-        process(buf, n);  // data may accompany eof
+    for (;;)
+    {
+        auto [ec, n] = co_await socket.async_read(buf);
+        if (n > 0)
+            process(buf, n);
+        if (ec)
+            break;
+    }
 }
 
 // Application launches the coroutine
@@ -231,17 +237,18 @@ JSL -->
 
 ### 3.3 `operator new` Is the *Only* Interception Point
 
-The senders/receivers facility, as defined today, provides
-exactly one mechanism to intercept
-coroutine frame allocation:
+The C++ language provides exactly one mechanism to intercept
+coroutine frame allocation: `promise_type::operator new`.
+This is a property of coroutines themselves, not of
+sender/receiver:
 
 ```cpp
 struct promise_type
 {
     static void* operator new(std::size_t size)
     {
-        // This is the ONLY place to intercept allocation
-        // The allocator must be known RIGHT NOW
+        // the ONLY place to intercept allocation
+        // the allocator must be known RIGHT NOW
 
         std::pmr::memory_resource* mr = /* ??? */;
         return mr->allocate(size, alignof(std::max_align_t));
@@ -249,35 +256,107 @@ struct promise_type
 };
 ```
 
-The allocator - along with its state - must be discoverable at this
-exact moment. No mechanism that provides the allocator later
-can help. The frame is already allocated by the time any later
-mechanism executes.
+The allocator - along with its state - must be discoverable
+at this exact moment. No mechanism that provides the
+allocator later can help. The frame is already allocated by
+the time any later mechanism executes.
 
-### 3.4 The `allocator_arg` Workaround
+The sender/receiver model inherits this constraint but
+amplifies it: the protocol's natural source of contextual
+information - the receiver's environment - is available only
+after `connect()`, which runs after `operator new`. The
+result is that the protocol's own allocator delivery
+mechanism cannot serve coroutine frame allocation.
+
+### 3.4 What P3552 Solves - and What It Does Not
 
 [P3552R3](https://wg21.link/p3552r3) ("Add a Coroutine Task
-Type") provides a mechanism for passing an allocator via a parameter to a given
-coroutine via `std::allocator_arg_t`. This additional syntax solves the initial
-allocation: the caller passes the allocator explicitly at the
-call site. However, propagation through call chains is unsolved.
-Every coroutine in the chain must accept variadic template
-arguments, query the allocator from its environment, and explicitly forward
-that allocator to every child coroutine call. The allocator becomes viral -
-function signatures - now with two additional parameters - no
-longer reflect algorithmic intent, and
-forgetting to forward the allocator silently breaks the chain.
-See Appendix A.2 for the complete propagation example.
+Type") introduces a two-tier model for execution resources
+in sender/receiver:
 
-Allocator propagation is admittedly a general challenge in C++,
-not unique to sender/receiver. However, the standard library
-addresses it for containers through *uses_allocator* construction
-and `scoped_allocator_adaptor`, which give generic code a uniform
-propagation path. No equivalent exists for coroutine frames, and
-the ordering constraint described in Section 3.5 - the receiver
-arrives after `operator new` - means that the natural source of
-the allocator in a sender/receiver pipeline is structurally
-unavailable at the point of allocation.
+- **Creation-time concerns** - the allocator - are passed at
+  the call site via `std::allocator_arg_t`.
+- **Connection-time concerns** - the scheduler and stop
+  token - flow through the receiver environment.
+
+This design solves initial allocation cleanly: the caller
+passes the allocator explicitly, and the coroutine's
+`operator new` can use it. P3552 is a valuable contribution,
+and the initial-allocation problem is closed.
+
+**Automatic propagation remains unsolved.** When a coroutine
+calls a child coroutine, the child's `operator new` fires
+during the function-call expression - before the parent's
+promise has any opportunity to intervene. The receiver's
+allocator, delivered through the S/R protocol at
+`connect()`, is structurally unreachable at the point of
+child frame allocation. The only workaround is manual
+forwarding: every coroutine in the chain must accept the
+allocator - whether through a defaulted parameter, an
+overload, or a variadic template - query the current
+allocator from its environment, and pass it to every child
+call. See Appendix A.2 for the complete propagation example.
+
+Manual forwarding works, but three properties distinguish
+the problem from a minor inconvenience:
+
+1. **Composability loss.** Generic sender algorithms launch
+   child operations without knowledge of the caller's
+   allocator. Consider a pipeline that uses `let_value` to
+   invoke a coroutine:
+
+   ```cpp
+   auto pipeline =
+       just(std::move(socket))
+     | let_value([](tcp_socket& s) -> task<void> {
+           // operator new runs HERE, inside the lambda.
+           // let_value has no allocator to forward -
+           // it does not know the caller uses one.
+           co_await s.async_read(buf);
+       });
+   ```
+
+   The `let_value` algorithm is generic: it invokes the
+   callable and connects the result. It has no mechanism to
+   forward an `allocator_arg` into the callable's return
+   expression, because the algorithm's implementation does
+   not participate in the forwarding chain. The same
+   limitation applies to `when_all`:
+
+   ```cpp
+   auto work =
+       when_all(
+           do_read(socket),    // each returns task<T>
+           check_timeout(id)   // operator new runs in each
+       );
+   // when_all launches both tasks.
+   // Neither receives the caller's allocator.
+   ```
+
+   Manual forwarding cannot cross algorithm boundaries.
+
+2. **Silent failure.** Omitting `allocator_arg` from one
+   call does not produce a compile error - the child
+   silently falls back to the default heap. In a
+   high-throughput server, the resulting allocation spike
+   may surface only under production load.
+
+3. **Protocol asymmetry.** Schedulers and stop tokens
+   propagate automatically through the receiver
+   environment. Allocators are the only execution resource
+   that the protocol forces users to propagate by hand.
+   Standardising this asymmetry means accepting that
+   allocators are permanently second-class in the
+   framework's own resource model.
+
+The standard library partially addresses a similar problem
+for containers through *uses_allocator* construction and
+`scoped_allocator_adaptor` - though custom aggregates must
+still propagate allocators manually. No equivalent exists
+for coroutine frames even in the container-like case, and
+the evaluation-order constraint - `operator new` runs
+before `co_await` processing - means that adding one would
+require changes to the protocol.
 
 ### 3.5 The Receiver Arrives Too Late
 
@@ -346,12 +425,12 @@ sequencing constraint intact.
 ### 4.1 The Gap Is Structural
 
 `operator new` runs before `connect()`. No library-level change
-can alter this sequencing - it is determined by the C++ language
-specification for coroutines' interacting with the sender/receiver
-protocol. There is no post-hoc extension point
-between "coroutine frame is allocated" and "receiver is
-connected." The only way to close the gap is to change the
-sequencing - which means *changing* the API.
+known to the authors can alter this sequencing - it is determined
+by the C++ language specification for coroutines' interacting
+with the sender/receiver protocol. There is no obvious post-hoc
+extension point between "coroutine frame is allocated" and
+"receiver is connected." Closing the gap appears to require
+changing the sequencing - which means *changing* the API.
 
 ### 4.2 `await_transform` Cannot Help
 
@@ -423,11 +502,18 @@ Appendix B.1 for a deeper analysis of each solution.
 ### 4.5 ABI Lock-In Makes the Architectural Gap Permanent
 
 Once standardised, the relationship between `operator new` and
-`connect()` becomes part of the ABI. A fix would likely need
-`connect()` to propagate allocator context before the coroutine
-frame is allocated - a structural change to the sender protocol.
-If such a change proves ABI-incompatible, the alternative is a
-second async framework alongside the first. Neither outcome is
+`connect()` becomes part of the ABI. The standard does not
+break ABI on standardised interfaces; that stability guarantee
+is central to C++'s value proposition.
+
+A fix would likely need `connect()` to propagate allocator
+context before the coroutine frame is allocated - a structural
+change to the sender protocol. An API change to a standardised
+interface implies an ABI change, and an ABI change to a
+standardised interface is effectively precluded by committee
+practice. The committee would then face a choice: accept the
+gap permanently, or introduce a parallel framework that serves
+coroutine-based I/O alongside the original. Neither outcome is
 impossible to manage, but both carry long-term costs that are
 worth weighing before the ABI boundary is set.
 
@@ -590,13 +676,11 @@ coroutine task types - are resolved.
 Deferral is not failure. The committee deferred trivial
 relocation to C++29 because open design questions remained;
 the expectation is that deferral will yield a stronger
-proposal, built on the foundations already laid. The same precedent applies here: the P2300
-authors' investment is preserved in full, and
-production-quality implementations (stdexec, NVIDIA CCCL,
-libunifex, Folly) remain available to users regardless of
-the standardisation timeline. A Technical Specification is a
-further option, though existing implementations already
-serve that role in practice.
+proposal, built on the foundations already laid. The same
+precedent applies here: the P2300 authors' investment is
+preserved in full, and production-quality implementations
+(stdexec, NVIDIA CCCL, libunifex, Folly) remain available
+to users regardless of the standardisation timeline.
 
 ### 6.3 Trade-offs of the Current Timeline
 
@@ -610,9 +694,9 @@ concrete library implementations. Unlike language features,
 non-standard library implementations are straightforward to
 adopt; organisations can use Boost, stdexec, or other
 implementations without compiler extensions.
-If the committe were to defer this feature until a future
-iteration of the language - whether or not it is released
-as a TS - no current users would be affected.
+If the committee were to defer this feature until a future
+iteration of the language, no current users would be
+affected.
 
 The networking use case - which arguably represents the largest
 constituency for asynchronous C++ - is the community most
@@ -682,9 +766,10 @@ allocator sequencing gap remains:
 4. **`std::execution` provides the allocator too late** -
    the receiver's environment is available only after
    `connect()`
-5. **The gap cannot be fixed later** - `operator new` runs
-   before `connect()`, and no library change can alter that
-   sequencing without destabilising the API
+5. **The gap is difficult to fix later** - `operator new` runs
+   before `connect()`, and no library change known to the
+   authors can alter that sequencing without destabilising the
+   API
 
 [P2300R4](https://wg21.link/p2300r4) established the
 sender/receiver context model in January 2022. Four years
@@ -693,7 +778,7 @@ later, the design continues to evolve:
 architectural changes to `transform_sender`, removes early
 customization entirely, and restructures the relationship
 between `continues_on` and `schedule_from`. This level of active change reflects a design that is
-still evolving, and suggests there may be value in
+still evolving and suggests there may be value in
 allowing that evolution to complete before freezing the
 ABI.
 
@@ -714,8 +799,8 @@ not two.
 before freezing the `std::execution` API in the IS. We
 welcome a solution from the P2300 authors and are eager to
 collaborate on one. If the gap cannot be closed in the C++26
-time frame, we encourage the committee to continue this work
-with a view to inclusion in C++29.**
+time frame, we encourage the committee to continue to evolve
+this important feature towards its inclusion in C++29.**
 
 ---
 
@@ -769,30 +854,40 @@ chain looks like in practice:
 ```cpp
 namespace ex = std::execution;
 
-template<class... Args>
-task<void> level_three(Args&&...) { co_return; }
-
-template<class... Args>
-task<void> level_two(int x, Args&&...) {
-    auto alloc = co_await ex::read_env(ex::get_allocator);    // Query
-    co_await level_three(std::allocator_arg, alloc);           // Forward
+// Defaulted parameter approach:
+task<void> level_three(
+    std::allocator_arg_t = {},
+    auto alloc = std::allocator<>{})
+{
+    co_return;
 }
 
+// Defaulted parameter approach:
+task<void> level_two(
+    int x,
+    std::allocator_arg_t = {},
+    auto alloc = std::allocator<>{})
+{
+    co_await level_three(std::allocator_arg, alloc);
+}
+
+// Variadic template approach (also works):
 template<class... Args>
-task<int> level_one(int v, Args&&...) {
-    auto alloc = co_await ex::read_env(ex::get_allocator);    // Query
-    co_await level_two(42, std::allocator_arg, alloc);         // Forward
+task<int> level_one(int v, Args&&... args)
+{
+    auto alloc =
+        co_await ex::read_env(ex::get_allocator);
+    co_await level_two(42, std::allocator_arg, alloc);
     co_return v;
 }
 ```
 
 Every coroutine in the chain must accept the allocator
-argument (whether via variadic template parameters, defaulted
-arguments, or an explicit `allocator_arg` overload), query the
-current allocator, and forward it to each child. Function
-signatures no longer reflect algorithmic intent. Forgetting to
-forward the allocator silently breaks the chain. The allocator
-becomes viral - polluting interfaces throughout the codebase.
+argument - via defaulted parameters, overloads, or variadic
+templates - and forward it to each child. Function
+signatures no longer reflect algorithmic intent. The
+allocator becomes viral: forgetting to forward it at any
+point silently breaks the chain without a compile error.
 
 ### A.3 The `connect`/`start`/`operator new` Sequence
 

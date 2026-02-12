@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>D4007R0: <code>std::execution</code> Needs More Time</title>
+  <title>D4007R0: Does <code>std::execution</code> Need More
+Time?</title>
   <style type="text/css">
 
 @font-face {
@@ -845,7 +846,7 @@ outline: none;
   <div class="header-text">WG21 Proposal</div>
 </header>
 
-<h1><code>std::execution</code> Needs More Time</h1>
+<h1>Does <code>std::execution</code> Need More Time?</h1>
 
 <!-- Document Metadata -->
 <div class="document-info">
@@ -876,8 +877,8 @@ outline: none;
   <li><a href="#operator-new-is-the-only-interception-point" id="toc-operator-new-is-the-only-interception-point">3.3
   <code>operator new</code> Is the <em>Only</em> Interception
   Point</a></li>
-  <li><a href="#the-allocator_arg-workaround" id="toc-the-allocator_arg-workaround">3.4 The
-  <code>allocator_arg</code> Workaround</a></li>
+  <li><a href="#what-p3552-solves---and-what-it-does-not" id="toc-what-p3552-solves---and-what-it-does-not">3.4 What P3552
+  Solves - and What It Does Not</a></li>
   <li><a href="#the-receiver-arrives-too-late" id="toc-the-receiver-arrives-too-late">3.5 The Receiver Arrives Too
   Late</a></li>
   </ul></li>
@@ -987,10 +988,11 @@ sequencing gap prevents coroutine-based I/O from using stateful
 allocators: <code>operator new</code> runs before the receiver exists,
 so the allocator arrives too late. Because the gap arises from the
 interaction between coroutine evaluation order and the sender/receiver
-protocol, closing it may require changes to the API. We recommend
-deferring <code>std::execution</code> to C++29, or alternatively
-publishing it as a Technical Specification, so that the allocator story
-can be resolved before the ABI is frozen.</p>
+protocol, closing it may require changes to the API. Unless a
+backward-compatible solution addressing this gap can be demonstrated, we
+recommend deferring <code>std::execution</code> to C++29 - and perhaps
+separately publishing it as an evolvable white paper - so that the
+allocator story can be resolved before the ABI is frozen.</p>
 <hr />
 <h2 id="introduction">1. Introduction</h2>
 <p><a href="https://wg21.link/p2300r10">P2300R10</a> (“std::execution”)
@@ -1015,12 +1017,12 @@ CPU-bound parallelism and GPU dispatch.</p>
 <p>The concern this paper raises is narrower than a general objection:
 <code>std::execution</code> works well for its primary use cases. The
 gap arises when a sender pipeline must select a custom allocation
-strategy. The allocator must be available <em>before</em> construction,
-but the sender/receiver model provides it only after the frame has
-already been created.</p>
-<p>Coroutine-based I/O makes this gap acute. Asynchronous execution
-makes optimising away the coroutine frame allocation unlikely or
-impossible, and the impact of multiple extra allocations per I/O
+strategy. The allocator must be available <em>before</em> the coroutine
+frame is constructed, but the sender/receiver model provides the
+allocator only after the frame has already been created.</p>
+<p>Coroutine-based I/O causes this gap to become acute. Asynchronous
+execution makes optimising away the coroutine frame allocation unlikely
+or impossible, and the impact of multiple extra allocations per I/O
 operation can be disastrous. The committee has explicitly placed this
 use case in scope (see Section 6.4); the standard must accommodate
 it.</p>
@@ -1028,14 +1030,14 @@ it.</p>
 breaking API change or (2) leaving the current interface as vestigial
 cruft. Section 4 examines each proposed escape route; as of this
 writing, none appears to close the gap.</p>
-<p>The allocator sequencing gap is not a missing feature that can be
-added later; it is architectural: <code>operator new</code> runs before
-<code>connect()</code>, and no library-level change can alter that
-sequencing without destabilising the API. Discovering this gap before
-standardisation is fortunate, not a failure. The feature’s size and
-complexity make thorough review genuinely difficult, and it is not
-surprising that a gap visible only in the I/O use case was not
-identified earlier. There is still time to address it.</p>
+<p>The allocator sequencing gap is architectural, not a missing feature
+that can be added later: <code>operator new</code> runs before
+<code>connect()</code>, and no library-level change known to the authors
+can alter that sequencing without destabilising the API. Discovering
+this gap before standardisation is fortunate, not a failure. The
+feature’s size and complexity make thorough review genuinely difficult,
+and it is not surprising that a gap visible only in the I/O use case was
+not identified earlier. There is still time to address it.</p>
 <hr />
 <h2 id="the-io-use-case">2. The I/O Use Case</h2>
 <p><code>std::execution</code> aspires to be a general-purpose
@@ -1047,24 +1049,29 @@ I/O:</p>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> handle_client<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> <span class="op">[</span>ec<span class="op">,</span> n<span class="op">]</span> <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>n <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        process<span class="op">(</span>buf<span class="op">,</span> n<span class="op">);</span>  <span class="co">// data may accompany eof</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Application launches the coroutine</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    io_context ctx<span class="op">;</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    tcp_socket sock <span class="op">=</span> accept_connection<span class="op">(</span>ctx<span class="op">);</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> ctx<span class="op">.</span>get_frame_allocator<span class="op">();</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    run_async<span class="op">(</span>ctx<span class="op">.</span>get_executor<span class="op">(),</span> alloc<span class="op">)(</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        handle_client<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sock<span class="op">))</span>   <span class="co">// Frame allocated HERE</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">.</span>run<span class="op">();</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(;;)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">auto</span> <span class="op">[</span>ec<span class="op">,</span> n<span class="op">]</span> <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>n <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>            process<span class="op">(</span>buf<span class="op">,</span> n<span class="op">);</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>ec<span class="op">)</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Application launches the coroutine</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    io_context ctx<span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    tcp_socket sock <span class="op">=</span> accept_connection<span class="op">(</span>ctx<span class="op">);</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> ctx<span class="op">.</span>get_frame_allocator<span class="op">();</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    run_async<span class="op">(</span>ctx<span class="op">.</span>get_executor<span class="op">(),</span> alloc<span class="op">)(</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        handle_client<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sock<span class="op">))</span>   <span class="co">// Frame allocated HERE</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">.</span>run<span class="op">();</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The critical sequencing:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>run_async<span class="op">(</span>executor<span class="op">,</span> alloc<span class="op">)(</span>handle_client<span class="op">(</span>sock<span class="op">))</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                                 <span class="op">|</span></span>
@@ -1153,14 +1160,15 @@ is not vissable?  What criteria affects that decision, etc.
 JSL --></p>
 <h3 id="operator-new-is-the-only-interception-point">3.3
 <code>operator new</code> Is the <em>Only</em> Interception Point</h3>
-<p>The senders/receivers facility, as defined today, provides exactly
-one mechanism to intercept coroutine frame allocation:</p>
+<p>The C++ language provides exactly one mechanism to intercept
+coroutine frame allocation: <code>promise_type::operator new</code>.
+This is a property of coroutines themselves, not of sender/receiver:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> <span class="dt">promise_type</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="dt">void</span><span class="op">*</span> <span class="kw">operator</span> <span class="kw">new</span><span class="op">(</span><span class="bu">std::</span>size_t size<span class="op">)</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// This is the ONLY place to intercept allocation</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// The allocator must be known RIGHT NOW</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// the ONLY place to intercept allocation</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// the allocator must be known RIGHT NOW</span></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">std::</span>pmr::memory_resource<span class="op">*</span> mr <span class="op">=</span> <span class="co">/* ??? */</span><span class="op">;</span></span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> mr<span class="op">-&gt;</span>allocate<span class="op">(</span>size<span class="op">,</span> <span class="kw">alignof</span><span class="op">(</span><span class="bu">std::</span>max_align_t<span class="op">));</span></span>
@@ -1170,29 +1178,87 @@ one mechanism to intercept coroutine frame allocation:</p>
 exact moment. No mechanism that provides the allocator later can help.
 The frame is already allocated by the time any later mechanism
 executes.</p>
-<h3 id="the-allocator_arg-workaround">3.4 The <code>allocator_arg</code>
-Workaround</h3>
+<p>The sender/receiver model inherits this constraint but amplifies it:
+the protocol’s natural source of contextual information - the receiver’s
+environment - is available only after <code>connect()</code>, which runs
+after <code>operator new</code>. The result is that the protocol’s own
+allocator delivery mechanism cannot serve coroutine frame
+allocation.</p>
+<h3 id="what-p3552-solves---and-what-it-does-not">3.4 What P3552 Solves
+- and What It Does Not</h3>
 <p><a href="https://wg21.link/p3552r3">P3552R3</a> (“Add a Coroutine
-Task Type”) provides a mechanism for passing an allocator via a
-parameter to a given coroutine via <code>std::allocator_arg_t</code>.
-This additional syntax solves the initial allocation: the caller passes
-the allocator explicitly at the call site. However, propagation through
-call chains is unsolved. Every coroutine in the chain must accept
-variadic template arguments, query the allocator from its environment,
-and explicitly forward that allocator to every child coroutine call. The
-allocator becomes viral - function signatures - now with two additional
-parameters - no longer reflect algorithmic intent, and forgetting to
-forward the allocator silently breaks the chain. See Appendix A.2 for
-the complete propagation example.</p>
-<p>Allocator propagation is admittedly a general challenge in C++, not
-unique to sender/receiver. However, the standard library addresses it
-for containers through <em>uses_allocator</em> construction and
-<code>scoped_allocator_adaptor</code>, which give generic code a uniform
-propagation path. No equivalent exists for coroutine frames, and the
-ordering constraint described in Section 3.5 - the receiver arrives
-after <code>operator new</code> - means that the natural source of the
-allocator in a sender/receiver pipeline is structurally unavailable at
-the point of allocation.</p>
+Task Type”) introduces a two-tier model for execution resources in
+sender/receiver:</p>
+<ul>
+<li><strong>Creation-time concerns</strong> - the allocator - are passed
+at the call site via <code>std::allocator_arg_t</code>.</li>
+<li><strong>Connection-time concerns</strong> - the scheduler and stop
+token - flow through the receiver environment.</li>
+</ul>
+<p>This design solves initial allocation cleanly: the caller passes the
+allocator explicitly, and the coroutine’s <code>operator new</code> can
+use it. P3552 is a valuable contribution, and the initial-allocation
+problem is closed.</p>
+<p><strong>Automatic propagation remains unsolved.</strong> When a
+coroutine calls a child coroutine, the child’s <code>operator new</code>
+fires during the function-call expression - before the parent’s promise
+has any opportunity to intervene. The receiver’s allocator, delivered
+through the S/R protocol at <code>connect()</code>, is structurally
+unreachable at the point of child frame allocation. The only workaround
+is manual forwarding: every coroutine in the chain must accept the
+allocator - whether through a defaulted parameter, an overload, or a
+variadic template - query the current allocator from its environment,
+and pass it to every child call. See Appendix A.2 for the complete
+propagation example.</p>
+<p>Manual forwarding works, but three properties distinguish the problem
+from a minor inconvenience:</p>
+<ol type="1">
+<li><p><strong>Composability loss.</strong> Generic sender algorithms
+launch child operations without knowledge of the caller’s allocator.
+Consider a pipeline that uses <code>let_value</code> to invoke a
+coroutine:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> pipeline <span class="op">=</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    just<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>socket<span class="op">))</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> let_value<span class="op">([](</span>tcp_socket<span class="op">&amp;</span> s<span class="op">)</span> <span class="op">-&gt;</span> task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="co">// operator new runs HERE, inside the lambda.</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// let_value has no allocator to forward -</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// it does not know the caller uses one.</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">co_await</span> s<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">});</span></span></code></pre></div>
+<p>The <code>let_value</code> algorithm is generic: it invokes the
+callable and connects the result. It has no mechanism to forward an
+<code>allocator_arg</code> into the callable’s return expression,
+because the algorithm’s implementation does not participate in the
+forwarding chain. The same limitation applies to
+<code>when_all</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> work <span class="op">=</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    when_all<span class="op">(</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        do_read<span class="op">(</span>socket<span class="op">),</span>    <span class="co">// each returns task&lt;T&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        check_timeout<span class="op">(</span>id<span class="op">)</span>   <span class="co">// operator new runs in each</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">// when_all launches both tasks.</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Neither receives the caller&#39;s allocator.</span></span></code></pre></div>
+<p>Manual forwarding cannot cross algorithm boundaries.</p></li>
+<li><p><strong>Silent failure.</strong> Omitting
+<code>allocator_arg</code> from one call does not produce a compile
+error - the child silently falls back to the default heap. In a
+high-throughput server, the resulting allocation spike may surface only
+under production load.</p></li>
+<li><p><strong>Protocol asymmetry.</strong> Schedulers and stop tokens
+propagate automatically through the receiver environment. Allocators are
+the only execution resource that the protocol forces users to propagate
+by hand. Standardising this asymmetry means accepting that allocators
+are permanently second-class in the framework’s own resource
+model.</p></li>
+</ol>
+<p>The standard library partially addresses a similar problem for
+containers through <em>uses_allocator</em> construction and
+<code>scoped_allocator_adaptor</code> - though custom aggregates must
+still propagate allocators manually. No equivalent exists for coroutine
+frames even in the container-like case, and the evaluation-order
+constraint - <code>operator new</code> runs before <code>co_await</code>
+processing - means that adding one would require changes to the
+protocol.</p>
 <h3 id="the-receiver-arrives-too-late">3.5 The Receiver Arrives Too
 Late</h3>
 <p>Context in the sender/receiver model in <code>std::execution</code>
@@ -1203,16 +1269,16 @@ two spaces if possible.  Also, I'd like to see consistent punctuation:
 1. Colon after first line.
 2. Capitalization and Period association honored consistently
 JSL --> <!-- MG: Sorry I don't understand this feedback --></p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> my_coro<span class="op">();</span>                      <span class="co">// Coroutine returning a sender</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>                    <span class="co">// Step 1: operator new runs HERE</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         Frame already allocated</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sndr<span class="op">),</span> rcvr<span class="op">);</span> <span class="co">// Step 2: Receiver connected HERE</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         get_allocator(get_env(rcvr))</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         available NOW - too late</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span>                                <span class="co">// Step 3: Operation starts</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> my_coro<span class="op">();</span>                      <span class="co">// Coroutine returning a sender</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>                    <span class="co">// Step 1: operator new runs HERE</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         Frame already allocated</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sndr<span class="op">),</span> rcvr<span class="op">);</span> <span class="co">// Step 2: Receiver connected HERE</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         get_allocator(get_env(rcvr))</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         available NOW - too late</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span>                                <span class="co">// Step 3: Operation starts</span></span></code></pre></div>
 <p><a href="https://wg21.link/p2300r4">P2300R4</a> (“std::execution,”
 2022-01-18) acknowledges this sequencing:</p>
 <blockquote>
@@ -1246,12 +1312,12 @@ dispatch fixes - leaves the fundamental sequencing constraint
 intact.</p>
 <h3 id="the-gap-is-structural">4.1 The Gap Is Structural</h3>
 <p><code>operator new</code> runs before <code>connect()</code>. No
-library-level change can alter this sequencing - it is determined by the
-C++ language specification for coroutines’ interacting with the
-sender/receiver protocol. There is no post-hoc extension point between
-“coroutine frame is allocated” and “receiver is connected.” The only way
-to close the gap is to change the sequencing - which means
-<em>changing</em> the API.</p>
+library-level change known to the authors can alter this sequencing - it
+is determined by the C++ language specification for coroutines’
+interacting with the sender/receiver protocol. There is no obvious
+post-hoc extension point between “coroutine frame is allocated” and
+“receiver is connected.” Closing the gap appears to require changing the
+sequencing - which means <em>changing</em> the API.</p>
 <h3 id="await_transform-cannot-help">4.2 <code>await_transform</code>
 Cannot Help</h3>
 <p>A natural question is whether
@@ -1317,13 +1383,18 @@ B.1 for a deeper analysis of each solution.</p>
 <h3 id="abi-lock-in-makes-the-architectural-gap-permanent">4.5 ABI
 Lock-In Makes the Architectural Gap Permanent</h3>
 <p>Once standardised, the relationship between <code>operator new</code>
-and <code>connect()</code> becomes part of the ABI. A fix would likely
-need <code>connect()</code> to propagate allocator context before the
-coroutine frame is allocated - a structural change to the sender
-protocol. If such a change proves ABI-incompatible, the alternative is a
-second async framework alongside the first. Neither outcome is
-impossible to manage, but both carry long-term costs that are worth
-weighing before the ABI boundary is set.</p>
+and <code>connect()</code> becomes part of the ABI. The standard does
+not break ABI on standardised interfaces; that stability guarantee is
+central to C++’s value proposition.</p>
+<p>A fix would likely need <code>connect()</code> to propagate allocator
+context before the coroutine frame is allocated - a structural change to
+the sender protocol. An API change to a standardised interface implies
+an ABI change, and an ABI change to a standardised interface is
+effectively precluded by committee practice. The committee would then
+face a choice: accept the gap permanently, or introduce a parallel
+framework that serves coroutine-based I/O alongside the original.
+Neither outcome is impossible to manage, but both carry long-term costs
+that are worth weighing before the ABI boundary is set.</p>
 <hr />
 <h2 id="the-committees-own-record">5. The Committee’s Own Record</h2>
 <p>The committee’s own proceedings confirm that the allocator story is
@@ -1556,9 +1627,7 @@ deferral will yield a stronger proposal, built on the foundations
 already laid. The same precedent applies here: the P2300 authors’
 investment is preserved in full, and production-quality implementations
 (stdexec, NVIDIA CCCL, libunifex, Folly) remain available to users
-regardless of the standardisation timeline. A Technical Specification is
-a further option, though existing implementations already serve that
-role in practice.</p>
+regardless of the standardisation timeline.</p>
 <h3 id="trade-offs-of-the-current-timeline">6.3 Trade-offs of the
 Current Timeline</h3>
 <p>The urgency question deserves an honest answer: what are the costs of
@@ -1569,9 +1638,8 @@ blocked by the absence of an IS specification - they build against
 concrete library implementations. Unlike language features, non-standard
 library implementations are straightforward to adopt; organisations can
 use Boost, stdexec, or other implementations without compiler
-extensions. If the committe were to defer this feature until a future
-iteration of the language - whether or not it is released as a TS - no
-current users would be affected.</p>
+extensions. If the committee were to defer this feature until a future
+iteration of the language, no current users would be affected.</p>
 <p>The networking use case - which arguably represents the largest
 constituency for asynchronous C++ - is the community most affected by
 shipping <code>std::execution</code> that has an incomplete allocator
@@ -1625,10 +1693,10 @@ allocated</li>
 <li><strong><code>std::execution</code> provides the allocator too
 late</strong> - the receiver’s environment is available only after
 <code>connect()</code></li>
-<li><strong>The gap cannot be fixed later</strong> -
+<li><strong>The gap is difficult to fix later</strong> -
 <code>operator new</code> runs before <code>connect()</code>, and no
-library change can alter that sequencing without destabilising the
-API</li>
+library change known to the authors can alter that sequencing without
+destabilising the API</li>
 </ol>
 <p><a href="https://wg21.link/p2300r4">P2300R4</a> established the
 sender/receiver context model in January 2022. Four years later, the
@@ -1636,7 +1704,7 @@ design continues to evolve: <a href="https://wg21.link/p3826r3">P3826R3</a> prop
 architectural changes to <code>transform_sender</code>, removes early
 customization entirely, and restructures the relationship between
 <code>continues_on</code> and <code>schedule_from</code>. This level of
-active change reflects a design that is still evolving, and suggests
+active change reflects a design that is still evolving and suggests
 there may be value in allowing that evolution to complete before
 freezing the ABI.</p>
 <p>If <code>std::execution</code> ships with C++26 but cannot serve
@@ -1652,8 +1720,8 @@ community gets one async framework, not two.</p>
 before freezing the <code>std::execution</code> API in the IS. We
 welcome a solution from the P2300 authors and are eager to collaborate
 on one. If the gap cannot be closed in the C++26 time frame, we
-encourage the committee to continue this work with a view to inclusion
-in C++29.</strong></p>
+encourage the committee to continue to evolve this important feature
+towards its inclusion in C++29.</strong></p>
 <hr />
 <h2 id="appendix-a---code-examples">Appendix A - Code Examples</h2>
 <h3 id="a.1-why-halo-cannot-help">A.1 Why HALO Cannot Help</h3>
@@ -1661,15 +1729,15 @@ in C++29.</strong></p>
 coroutine frame allocation when the frame’s lifetime is provably bounded
 by its caller. When an I/O coroutine is launched onto an execution
 context, the frame must outlive the launching function:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;</span> read_data<span class="op">(</span>socket<span class="op">&amp;</span> s<span class="op">,</span> buffer<span class="op">&amp;</span> buf<span class="op">)</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> <span class="cf">co_await</span> s<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span>  <span class="co">// Suspends for network I/O</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> start_read<span class="op">(</span>executor ex<span class="op">)</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    start_detached<span class="op">(</span>ex<span class="op">,</span> read_data<span class="op">(</span>sock<span class="op">,</span> buf<span class="op">));</span> <span class="co">// Frame must outlive this function</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>                                             <span class="co">// Caller returns immediately</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;</span> read_data<span class="op">(</span>socket<span class="op">&amp;</span> s<span class="op">,</span> buffer<span class="op">&amp;</span> buf<span class="op">)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> <span class="cf">co_await</span> s<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span>  <span class="co">// Suspends for network I/O</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> start_read<span class="op">(</span>executor ex<span class="op">)</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    start_detached<span class="op">(</span>ex<span class="op">,</span> read_data<span class="op">(</span>sock<span class="op">,</span> buf<span class="op">));</span> <span class="co">// Frame must outlive this function</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>                                             <span class="co">// Caller returns immediately</span></span></code></pre></div>
 <p><code>start_detached</code> transfers the frame’s lifetime to the
 execution context. The caller returns, and the frame persists until the
 OS signals I/O completion - which may take microseconds or seconds. The
@@ -1692,43 +1760,52 @@ I/O.</p>
 for passing an allocator to a single coroutine via
 <code>std::allocator_arg_t</code>. Here is what propagation through a
 call chain looks like in practice:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> ex <span class="op">=</span> <span class="bu">std::</span>execution<span class="op">;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_three<span class="op">(</span>Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span> <span class="cf">co_return</span><span class="op">;</span> <span class="op">}</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_two<span class="op">(</span><span class="dt">int</span> x<span class="op">,</span> Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="cf">co_await</span> ex<span class="op">::</span>read_env<span class="op">(</span>ex<span class="op">::</span>get_allocator<span class="op">);</span>    <span class="co">// Query</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_three<span class="op">(</span><span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span>           <span class="co">// Forward</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> level_one<span class="op">(</span><span class="dt">int</span> v<span class="op">,</span> Args<span class="op">&amp;&amp;...)</span> <span class="op">{</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="cf">co_await</span> ex<span class="op">::</span>read_env<span class="op">(</span>ex<span class="op">::</span>get_allocator<span class="op">);</span>    <span class="co">// Query</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_two<span class="op">(</span><span class="dv">42</span><span class="op">,</span> <span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span>         <span class="co">// Forward</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> v<span class="op">;</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Every coroutine in the chain must accept the allocator argument
-(whether via variadic template parameters, defaulted arguments, or an
-explicit <code>allocator_arg</code> overload), query the current
-allocator, and forward it to each child. Function signatures no longer
-reflect algorithmic intent. Forgetting to forward the allocator silently
-breaks the chain. The allocator becomes viral - polluting interfaces
-throughout the codebase.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> ex <span class="op">=</span> <span class="bu">std::</span>execution<span class="op">;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Defaulted parameter approach:</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_three<span class="op">(</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>allocator_arg_t <span class="op">=</span> <span class="op">{},</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="bu">std::</span>allocator<span class="op">&lt;&gt;{})</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span><span class="op">;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Defaulted parameter approach:</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> level_two<span class="op">(</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> x<span class="op">,</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>allocator_arg_t <span class="op">=</span> <span class="op">{},</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span> <span class="bu">std::</span>allocator<span class="op">&lt;&gt;{})</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_three<span class="op">(</span><span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">// Variadic template approach (also works):</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Args<span class="op">&gt;</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> level_one<span class="op">(</span><span class="dt">int</span> v<span class="op">,</span> Args<span class="op">&amp;&amp;...</span> args<span class="op">)</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> alloc <span class="op">=</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">co_await</span> ex<span class="op">::</span>read_env<span class="op">(</span>ex<span class="op">::</span>get_allocator<span class="op">);</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> level_two<span class="op">(</span><span class="dv">42</span><span class="op">,</span> <span class="bu">std::</span>allocator_arg<span class="op">,</span> alloc<span class="op">);</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_return</span> v<span class="op">;</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Every coroutine in the chain must accept the allocator argument - via
+defaulted parameters, overloads, or variadic templates - and forward it
+to each child. Function signatures no longer reflect algorithmic intent.
+The allocator becomes viral: forgetting to forward it at any point
+silently breaks the chain without a compile error.</p>
 <h3 id="a.3-the-connectstartoperator-new-sequence">A.3 The
 <code>connect</code>/<code>start</code>/<code>operator new</code>
 Sequence</h3>
 <p>The complete evaluation sequence showing the gap between frame
 allocation and receiver connection:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>                    <span class="co">// Step 1: operator new runs HERE</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         Frame already allocated</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sndr<span class="op">),</span> rcvr<span class="op">);</span> <span class="co">// Step 2: Receiver connected HERE</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         get_allocator(get_env(rcvr))</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         available NOW - too late</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span>                                <span class="co">// Step 3: Operation starts</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sndr <span class="op">=</span> my_coro<span class="op">();</span>                    <span class="co">// Step 1: operator new runs HERE</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         Frame already allocated</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>sndr<span class="op">),</span> rcvr<span class="op">);</span> <span class="co">// Step 2: Receiver connected HERE</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         get_allocator(get_env(rcvr))</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                                          <span class="co">//         available NOW - too late</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span>                                <span class="co">// Step 3: Operation starts</span></span></code></pre></div>
 <p><a href="https://wg21.link/p2300r4">P2300R4</a> (2022-01-18)
 acknowledges this sequencing:</p>
 <blockquote>
@@ -1752,24 +1829,24 @@ Sender/Receiver vs Coroutine - Side by Side</h3>
 <p>The same <code>handle_connection</code> logic in both models
 illustrates where the gap opens.</p>
 <p><strong>Pure sender/receiver (no coroutines):</strong></p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> just<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>socket<span class="op">))</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>      <span class="op">|</span> let_value<span class="op">([](</span>tcp_socket<span class="op">&amp;</span> s<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> async_read<span class="op">(</span>s<span class="op">)</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> let_value<span class="op">([&amp;](</span><span class="kw">auto</span> data<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> process<span class="op">(</span>s<span class="op">,</span> data<span class="op">);</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                <span class="op">});</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">});</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Usage:</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span>handle_connection<span class="op">(</span>sock<span class="op">),</span> rcvr<span class="op">);</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">//                                         ^^^^</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">// The receiver&#39;s allocator is available here.</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">// connect() can allocate the entire operation state</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">// tree using get_allocator(get_env(rcvr)).</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> just<span class="op">(</span><span class="bu">std::</span>move<span class="op">(</span>socket<span class="op">))</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      <span class="op">|</span> let_value<span class="op">([](</span>tcp_socket<span class="op">&amp;</span> s<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> async_read<span class="op">(</span>s<span class="op">)</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>              <span class="op">|</span> let_value<span class="op">([&amp;](</span><span class="kw">auto</span> data<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">return</span> process<span class="op">(</span>s<span class="op">,</span> data<span class="op">);</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                <span class="op">});</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">});</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Usage:</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> op <span class="op">=</span> <span class="fu">connect</span><span class="op">(</span>handle_connection<span class="op">(</span>sock<span class="op">),</span> rcvr<span class="op">);</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">//                                         ^^^^</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co">// The receiver&#39;s allocator is available here.</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co">// connect() can allocate the entire operation state</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="co">// tree using get_allocator(get_env(rcvr)).</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>start<span class="op">(</span>op<span class="op">);</span></span></code></pre></div>
 <p>The standard sender algorithms (<code>just</code>,
 <code>let_value</code>, etc.) build a lazy description; no operation
 state is allocated until <code>connect(sender, receiver)</code>, at
@@ -1780,14 +1857,14 @@ defers allocation to <code>connect()</code> precisely so that the
 receiver’s allocator can be used. There is no allocator sequencing
 gap.</p>
 <p><strong>Coroutine model:</strong></p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// operator new has ALREADY run by this point.</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// The frame is allocated. The receiver does not exist yet.</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> n <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> process_request<span class="op">(</span>socket<span class="op">,</span> buf<span class="op">,</span> n<span class="op">);</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>task<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> handle_connection<span class="op">(</span>tcp_socket socket<span class="op">)</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// operator new has ALREADY run by this point.</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// The frame is allocated. The receiver does not exist yet.</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span><span class="dv">1024</span><span class="op">];</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> n <span class="op">=</span> <span class="cf">co_await</span> socket<span class="op">.</span>async_read<span class="op">(</span>buf<span class="op">);</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">co_await</span> process_request<span class="op">(</span>socket<span class="op">,</span> buf<span class="op">,</span> n<span class="op">);</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The coroutine frame is allocated during the function call - before
 any receiver exists. This is the precise moment the gap opens. Any
 sender that allocates storage at creation time faces the same allocator
@@ -1832,7 +1909,7 @@ the fix. It does not change when the allocator becomes available.</p>
 P3826’s recommended fix restructures <code>transform_sender</code> to
 take the receiver’s environment, changing information flow at
 <code>connect()</code> time:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>get_completion_domain<span class="op">&lt;</span><span class="dt">set_value_t</span><span class="op">&gt;(</span>get_env<span class="op">(</span>sndr<span class="op">),</span> get_env<span class="op">(</span>rcvr<span class="op">))</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>get_completion_domain<span class="op">&lt;</span><span class="dt">set_value_t</span><span class="op">&gt;(</span>get_env<span class="op">(</span>sndr<span class="op">),</span> get_env<span class="op">(</span>rcvr<span class="op">))</span></span></code></pre></div>
 <p>This tells senders where they will start, enabling correct algorithm
 dispatch. It does not change when the allocator becomes available - the
 receiver’s environment is still only queryable after
@@ -1850,7 +1927,7 @@ architecturally intertwined.</p>
 into child coroutine calls, eliminating explicit
 <code>allocator_arg</code> passing.</p>
 <p>The issue is evaluation order. In the expression:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">co_await</span> child_coro<span class="op">(</span>args<span class="op">...)</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">co_await</span> child_coro<span class="op">(</span>args<span class="op">...)</span></span></code></pre></div>
 <p>The function call <code>child_coro(args...)</code> is evaluated
 <em>first</em>. The child’s <code>operator new</code> fires, the
 coroutine frame is allocated, the promise is constructed, and
